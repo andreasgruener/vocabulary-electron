@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html>
+<title>Vokabeltrainer</title>
+<link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
+</head>
+
+<body>
+    <nav class="navbar navbar-light" style="background-color: #e3f2fd;">
+        <div class="nav-wrapper">
+            <h1>Hasenkopf Vocabulary</h1>
+        </div>
+    </nav>
+    <div class="container">
+        <div id="spacer" class="row">
+            <div class="col">&nbsp;
+            </div>
+        </div>
+
+        <div id="navigationCards" class="row">
+            <div class="col xl6 m6">
+                <div class="card" style="width: 20 rem;">
+                    <img class="card-img-top" src="assets/images/study.jpg" alt="Card image cap">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-9">
+                                <h5 class="card-title">Study</h5>
+                            </div>
+                            <div class="col-3 right">
+                                <button id="parse-errors-element" type="button" class="btn btn-danger">
+                                    <span class="badge badge-light">
+                                        <span id="parse-errors">9</span>
+                                    </span>
+                                    <span class="sr-only">unread messages</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <p id="info">No vocabulary is active.</p>
+                        <a id="loaddata" href="#">Load Vocabulary</a>
+                        <a id="runtest" href="#">Run test</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col xl6 m6">
+                <div class="card" style="width: 20 rem;">
+                    <img class="card-img-top" src="assets/images/write.jpg" alt="Card image cap">
+                    <div class="card-body">
+                        <h5 class="card-title">Edit Data</h5>
+                        <p>Enter vocabulary here</p>
+                        <a id="enterdata" href="#">Enter Data</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+      
+        <div class="row">
+            <div id='testCard' class="col xl9 l9 m12 s12">
+                  <!-- VOCABULARY CARD -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="d-flex bd-highlight mb-3">
+                            <div class="mr-auto p-2 bd-highlight">
+                                <h2 id="vocabulary-word">Card Title</h2>
+                            </div>
+                            <div class="p-2 bd-highlight">
+                                <span id="vocabulary-correct" class="badge badge-success" data-badge-caption="Correct">Correct 4</span>
+                            </div>
+                            <div class="p-2 bd-highlight">
+                                <span id="vocabulary-error" class="badge badge-danger right" data-badge-caption="Error">Error 4</span>
+                            </div>
+                            <div class="p-2 bd-highlight">
+                                <span id="vocabulary-remaining" class="badge badge-info" data-badge-caption="Remaining">Remaining 4</span>
+                            </div>
+                            <div class="p-2 bd-highlight">
+                                <button id="test-close" type="button" class="close" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+
+                        </div>
+                    </div>
+                    <div class="card-body">
+
+                        <div class="d-flex p-2">
+                            <form>
+                                <div class="form-group">
+                                    <div class="row">
+                                        <div class="col-3">
+                                            <label for="exampleInputEmail1">Your translation: </label>
+                                        </div>
+                                        <div class="col-6">
+                                            <input id="vocabulary-translation" class="form-control" placeholder="..type it here .." autofocus>
+                                            <small id="emailHelp" class="form-text text-muted">Provide the translation and press Return or submit.</small>
+                                        </div>
+                                        <div class="col-3">
+                                            <button type="submit" class="btn btn-primary">Submit</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col xl3 l3 m12 s12">
+                <div id='errorCard' class="card">
+                    <div class="card-header">
+                        <h2>Vocabulary Errors</h2>
+                    </div>
+                    <div class="card-body">
+                        <ul id="errorList"></ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+
+
+    <script>
+        const log = require('electron-log');
+        // https://npmcdn.com/lexicon-ux/build/css
+        log.info('[RENDERER] mainWindow.html');
+        const electron = require('electron');
+        const { ipcRenderer } = electron;
+        const runTestElement = document.querySelector('#runtest');
+        const loadElement = document.querySelector('#loaddata');
+        const infoElement = document.querySelector('#info');
+        const wordElement = document.querySelector('#vocabulary-word');
+        const translationElement = document.querySelector('#vocabulary-translation');
+        const errorElement = document.querySelector('#errorList');
+        const errorCardElement = document.querySelector('#errorCard');
+        const parseErrorsElement = document.querySelector('#parse-errors-element');
+        const parseErrorsText = document.querySelector('#parse-errors');
+        const form = document.querySelector('form');
+        const testFormCloseElement = document.querySelector('#test-close');
+        const testCardElement = document.querySelector('#testCard');
+        const testErrorElement = document.querySelector('#vocabulary-error');
+        const testCorrectElement = document.querySelector('#vocabulary-correct');
+        const testRemainingElement = document.querySelector('#vocabulary-remaining');
+        const navigationCardsElement = document.querySelector('#navigationCards');
+
+        function showTest() {
+            navigationCardsElement.hidden = true;
+            testCardElement.hidden = false;
+            errorCardElement.hidden = false;
+            parseErrorsElement.hidden = false;
+        }
+
+        function hideTest() {
+            testCardElement.hidden = true;
+            navigationCardsElement.hidden = false;
+            errorCardElement.hidden = true;
+            parseErrorsElement.hidden = true;
+        }
+
+        form.addEventListener('submit', function () {
+            //log.info('[RENDERER] Submitting..');
+            var translation = translationElement.value;
+            var word = wordElement.innerHTML;
+            var check = {};
+            check['word'] = word;
+            check['translation'] = translation;
+
+            log.info('[RENDERER] Submitting %s', check.word);
+            ipcRenderer.send("test:answer", check);
+            translationElement.value = "";
+        });
+
+        ipcRenderer.on('test:result', function (e, item) {
+            log.info('[RENDERER] test:result Got result %s', item);
+            if (item.ok) {
+                // do some cool stuff
+            } else {
+                const li = document.createElement('li');
+                li.innerHTML = item.text;
+                errorElement.appendChild(li);
+
+            }
+        });
+
+
+        //  add item
+        ipcRenderer.on('test:display', function (e, word) {
+            log.info('[RENDERER] test:display Got %s', word);
+            wordElement.innerHTML = word;
+        });
+
+        ipcRenderer.on('test:fileInfo', function (e, item) {
+            log.info('[RENDERER] test:fileName: %s', item.fileName);
+            infoElement.innerHTML = item.fileName + " (" + item.size + ")";
+        });
+
+        ipcRenderer.on('test:stats', function (e, stats) {
+            //log.info(stats);
+            remaining = stats.total - stats.correct - stats.error;
+            testRemainingElement.innerHTML = remaining;
+            testErrorElement.innerHTML = stats.error;
+            testCorrectElement.innerHTML = stats.correct;
+            log.info('[RENDERER] test:stats done');
+        });
+
+
+        // parse error
+        ipcRenderer.on('parse:error', function (e, item) {
+            log.info('[RENDERER] parse:error');
+            parseErrorsText.innerHTML = item.length;
+            // for (var i = 0; i < item.length; i++) {
+            //     var li = document.createElement('li');
+            //     li.innerHTML = "[" + item[i].row + "] " + item[i].raw + " (" + item[i].error + ")";
+            //     errorElement.appendChild(li);
+            //     log.info('[RENDERER] clear text');
+            // }
+        });
+
+
+        testFormCloseElement.addEventListener('click', closeForm);
+        function closeForm() {
+            log.info('[RENDERER] hideTest');
+            hideTest();
+        }
+        // runtest
+        runTestElement.addEventListener('click', runTest);
+        function runTest(e) {
+            ipcRenderer.send("test:run")
+            showTest();
+        }
+        // loaddata
+        loadElement.addEventListener('click', loadTest);
+        function loadTest(e) {
+            ipcRenderer.send("test:load")
+        }
+
+        hideTest();
+        log.info('[RENDERER] MainWindow::ready to rumble...');
+        ipcRenderer.send("test:ready");
+        log.info('[RENDERER] #### MainWindow::JS done ...');
+    </script>
+</body>
+
+</html>
