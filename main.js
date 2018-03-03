@@ -5,12 +5,20 @@ const fs = require('fs');
 const parse = require('csv-parse')
 const Store = require('./store.js');
 const log = require('electron-log');
-
+const mqtt = require('mqtt');
+const username = require('username');
+var currentUser = "unknown";
+username().then(username => {
+    currentUser = username;
+});
+var mail = require('./assets/js/Mail.js');
 const { app, BrowserWindow, Menu, dialog, ipcMain } = electron;
 
 var activeVocabulary;
-var currentIndex;
-var stats;
+
+
+
+var testRunData;
 var fileInfo;
 // SET ENVIRONMENT
 //process.env.NODE_ENV = 'production';
@@ -25,7 +33,8 @@ const store = new Store({
     defaults: {
         // 800x600 is the default size of our window
         windowBounds: { width: 1280, height: 800 },
-        windowPosition: { x: 0, y:0 },
+        windowPositionX: 300,
+        windowPositionY: 300,
         vocabularyFileName: ''
     }
 });
@@ -35,11 +44,18 @@ const store = new Store({
 app.on('ready', function () {
     // create new window
     let { width, height } = store.get('windowBounds');
-    let { x, y} = store.get('windowPosition');
+    let x = store.get('windowPositionX');
+    let y = store.get('windowPositionY');
 
+    log.info("Loaded pos %s, %s", x, y);
     // Pass those values in to the BrowserWindow options
     mainWindow = new BrowserWindow({ width, height });
-   // mainWindow.setPosition(x,y);
+    if (x) {
+        mainWindow.setPosition(x, y);
+    }
+    else {
+        log.debug("No stored Window position.")
+    }
     //load html into window
     mainWindow.loadURL(url.format({
         pathname: path.join(__dirname, 'mainWindow.html'),
@@ -52,19 +68,12 @@ app.on('ready', function () {
     // The BrowserWindow class extends the node.js core EventEmitter class, so we use that API
     // to listen to events on the BrowserWindow. The resize event is emitted when the window size changes.
     mainWindow.on('resize', () => {
-        // The event doesn't pass us the window size, so we call the `getBounds` method which returns an object with
-        // the height, width, and x and y coordinates.
-        let { width, height } = mainWindow.getBounds();
-        // Now that we have them, save them using the `set` method.
         store.set('windowBounds', { width, height });
     });
 
     mainWindow.on('moved', () => {
-        // The event doesn't pass us the window size, so we call the `getBounds` method which returns an object with
-        // the height, width, and x and y coordinates.
-        let { x, y } = mainWindow.getPosition();
-        // Now that we have them, save them using the `set` method.
-        store.set('windowPosition', { x, y });
+        store.set('windowPositionX', mainWindow.getPosition()[0]);
+        store.set('windowPositionY', mainWindow.getPosition()[1]);
     });
 
     // build Menu from templatew
@@ -73,10 +82,47 @@ app.on('ready', function () {
 
 
     Menu.setApplicationMenu(mainMenu);
-    log.info('Yeah. I am ready!');
+    log.info('Dear %s, yeah. I am ready!', currentUser);
     // loadLastFile();
 
+    // publish();
 });
+
+// "language": "Englisch",
+// "user": "greta",
+// "type": "Vokabeln",
+// "subtype": "source",
+// "subsubtype": "Unit3-neu.csv",
+// "version": "1.2",
+// "fehler": 4,
+// "created": "2018-03-01T09:24:29Z"
+//
+// fehler
+// gesamt
+// dauer
+// note
+//
+// /vocabulary/anton/latein/deklinieren/a-Deklination/pauken/note
+// /
+
+function publish() {
+    var baseTopic = "/vocabulary/" +
+        currentUser +
+        "/english/Vokabeln/source/" +
+        testRunData.file + "/";
+    var noteTopic = baseTopic + "note";
+    var gesamtTopic = baseTopic + "gesamt";
+    var dauerTopic = baseTopic + "dauer";
+    var fehlerTopic = baseTopic + "fehler";
+
+    client = mqtt.connect('mqtt://mqtt.local')
+
+    client.on('connect', function () {
+        client.publish('presence', 'Hello mqtt')
+    })
+}
+
+
 
 
 function loadLastFile() {
@@ -89,12 +135,57 @@ function loadLastFile() {
         log.info('No file to load %s', lastFile);
     }
 }
+
+
+// load CSV File
+function loadCSVFile() {
+    log.info("Opening Dialog ..");
+
+    dialog.showOpenDialog(//{properties: ['openFile', 'openDirectory', 'multiSelections']});
+        {
+            filters: [
+                { name: 'Vocabulary Files CSV', extensions: ['csv'] }
+            ]
+        }, function (fileNames) {
+            if (fileNames === undefined) return;
+
+            const fileName = fileNames[0];
+            const fileDir = path.parse(fileName).dir;
+            log.info(fileDir);
+
+            parseCSV(fileName);
+
+        });
+}
+
+
+// load CSV File
+function loadCSVFile() {
+    log.info("Opening Dialog ..");
+
+    dialog.showOpenDialog(//{properties: ['openFile', 'openDirectory', 'multiSelections']});
+        {
+            filters: [
+                { name: 'Vocabulary Files CSV', extensions: ['csv'] }
+            ]
+        }, function (fileNames) {
+            if (fileNames === undefined) return;
+
+            const fileName = fileNames[0];
+            const fileDir = path.parse(fileName).dir;
+            log.info(fileDir);
+
+            parseCSV(fileName);
+
+        });
+}
+
 // parse csv
 function parseCSV(fileName) {
-    log.info(fileName);
+    log.info("About to load" + fileName);
 
     fs.readFile(fileName, 'utf-8', function (err, data) {
-        if (err) return log.info(err);
+        if (err) return log.info("parseCSV:", err);
         // data is the contents of the text file we just read
         //  log.info(data);
 
@@ -113,13 +204,12 @@ function parseCSV(fileName) {
             activeVocabulary = result.voc;
 
             const file = path.parse(fileName).name + path.parse(fileName).ext;
-            initFileInfo(file ,activeVocabulary.length);
-            //       mainWindow.webContents.send("test:display", nextVocabulary);
-            mainWindow.webContents.send("parse:error", result.error);
-            // store last file if it was read successfull
-            store.set('vocabularyFileName', fileName);
-            initStats(activeVocabulary.length);
-            log.info("****** Parsed End")
+            result['fileName'] = fileName;
+            result['file'] = file;
+            result['size'] = activeVocabulary.length;
+
+            log.info("****** Parsed End");
+            fileLoaded(result)
         });
 
         // mainWindow.webContents.
@@ -166,15 +256,54 @@ function specialParse(data) {
     // log.info('**************');
     //   log.info(vocs);
     result['voc'] = vocs;
-    result['error'] = parseProblems;
+    result['parseErrors'] = parseProblems;
     return result;
 }
 
+function fileLoaded(result) {
+    log.info("[MAIN] fileLoaded %s Words:%s", result.file, result.size);
+    // store globally
+    testRunData = {
+        'error': 0,
+        'total': result.size,
+        'correct': 0,
+        'currentIndex': 0,  // index to ask
+        'word': '<No Data>',  // the word to ask
+        'correctTranslation': '<No Data>',  // the translation at index
+        'answerIsCorrect': false,  // used to check if the answer is correct
+        'currentCount': 0, // counter for current run
+        'grade': 0, // initial grade
+        'targetCount': 0,  // target counter for this run
+        'type': '<No Data>',
+        'started' : "jetzt",
+        'fileName': result.fileName,
+        'parseErrors': result.parseErrors,
+        'file': result.file,
+        'size': result.size
+    }
+    //log.debug(stats.fil);
+    // store last file if it was read successfull
+    store.set('vocabularyFileName', result.fileName);
+    sendStats();
+}
+
+
+function initRun(count, type) {
+    testRunData.targetCount = 10; // all is default
+    if (count < testRunData.targetCount)
+        testRunData.targetCount = count;
+    testRunData.correct = 0;
+    testRunData.error = 0;
+    testRunData.currentIndex = 0;
+    testRunData.currentCount = 0;
+    testRunData.word = "";
+    // type not 
+}
 
 function checkVocabulary(check) {
     log.info("# Ready to check %s = %s.", check.word, check.translation);
     for (var i = 0; i < activeVocabulary.length; i++) {
-        entry = activeVocabulary[i];
+        var entry = activeVocabulary[i];
         //log.info("Checking %s with %s", entry.word, entry.translation);
         //log.info("")
         if (entry.word == check.word) {
@@ -185,8 +314,8 @@ function checkVocabulary(check) {
                 return "OK";
             } else {
                 log.info("# Wrong translation for %s correct is %s", entry.word, entry.translation);
-                incrementVocabularyStatsError();
-                return "Wrong translation " + entry.translation;
+                incrementVocabularyStatsError(entry);
+                return entry.word + " --> " + entry.translation;
             }
         }
     }
@@ -194,64 +323,108 @@ function checkVocabulary(check) {
 }
 
 function nextVocabulary() {
-    log.info("Next vocabulary %s", currentIndex);
-    currentIndex = currentIndex + 1;
-    if (currentIndex > activeVocabulary.length) {
+    console.log(testRunData);
+    log.info("Next vocabulary %s", testRunData.currentIndex);
+    testRunData.currentIndex = testRunData.currentIndex + 1;
+    if (testRunData.currentIndex > testRunData.targetCount) {
         log.info("Test over");
-        mainWindow.webContents.send("test:over", entry.word);
+        calcGrade();
+        mail.sendMail(testRunData);
+        log.info("MAIL SEND -- Test over");
+        mainWindow.webContents.send("test:over", testRunData);
     } else {
-        entry = activeVocabulary[currentIndex];
-        mainWindow.webContents.send("test:display", entry.word);
+        var entry = activeVocabulary[testRunData.currentIndex];
+        testRunData.word = entry.word;
+        mainWindow.webContents.send("test:display", testRunData);
         log.info("Test Display");
     }
 }
 
-function initStats(total) {
-    currentIndex = 0;
-    stats = { "total": activeVocabulary.length, "error": 0, "correct": 0 };
+
+function setTargetCount(targetCount) {
+    testRunData.targetCount = targetCount;
 }
 
 function incrementVocabularyStatsCorrect() {
-    stats.correct += 1;
+    testRunData.correct += 1;
+    testRunData.currentCount += 1;
+    testRunData.correctTranslation = '';
+    testRunData.answerIsCorrect = false;
 }
 
-function incrementVocabularyStatsError() {
-    stats.error += 1;
+function incrementVocabularyStatsError(entry) {
+    testRunData.error += 1;
+    testRunData.currentCount += 1;
+    testRunData.correctTranslation = entry.translation;
+    testRunData.answerIsCorrect = false;
 }
 
 function sendStats() {
-    mainWindow.webContents.send("test:stats", stats);
+    mainWindow.webContents.send("test:stats", testRunData);
     log.info("send stats");
 }
-function initFileInfo(fileName, size) {
-    fileInfo = {"fileName": fileName, "size": size};
-    sendFileInfo();
+
+function calcGrade() {
+    var percent = (testRunData.error / testRunData.currentCount) * 100
+    var gradePercent = percent * 10
+    var factor = Math.floor(gradePercent / 75);
+    var grade = 1 + factor * 0.5
+    // log.info("++ Percent %s = %s / %s ", percent, testRunData.error, testRunData.currentCount);
+    // log.info("++ Grade %s = 1 + %s *0,5 ", grade, factor);
+    if (grade > 6) {
+        grade = 6;
+    }
+    testRunData.grade = grade;
 }
-function sendFileInfo() {
-    mainWindow.webContents.send("test:fileInfo", fileInfo);
-}
+
+// First Vocabulary --  Item:add
+ipcMain.on('test:run', function (e, count, type) {
+    log.info("[MAIN] test:run cnt=%s type=%s", count, type);
+    initRun(count, type);
+    nextVocabulary();
+    log.info("[MAIN] test:run END");
+});
+
+// Catch test:answer
+ipcMain.on('test:answer', function (e, item) {
+    log.info("[MAIN] test:answer");
+    log.info('Checking %s', item);
+    log.info(item);
+    var result = checkVocabulary(item)
+    var returnResult = { "text": result, "ok": false };
+
+    if (result == "OK") {
+        returnResult.ok = true;
+    }
+    mainWindow.webContents.send("test:result", returnResult);
+    sendStats();
+    // get next vocabulary and sent it with current stats
+    nextVocabulary();
+    log.info("[MAIN] test:answer END");
+});
+
+// Catch Item:add
+ipcMain.on('test:load', function (e, item) {
+    log.info("[MAIN] test:load");
+    log.info('load vocabulary');
+    log.info(item);
+    loadCSVFile();
+    log.info("[MAIN] test:load END");
+});
+
+// check if we have a vocabulary file to open from user preferences
+ipcMain.on('program:ready', function () {
+    log.info("[MAIN] test:ready");
+    if (activeVocabulary) {
+        log.info("Tried to reload");
+    } else {
+        log.info('MainWindow is ready');
+        loadLastFile();
+    }
+    log.info("[MAIN] test:ready END");
+});
 
 
-// load CSV File
-function loadCSVFile() {
-    log.info("Opening Dialog ..");
-
-    dialog.showOpenDialog(//{properties: ['openFile', 'openDirectory', 'multiSelections']});
-        {
-            filters: [
-                { name: 'Vocabulary Files CSV', extensions: ['csv'] }
-            ]
-        }, function (fileNames) {
-            if (fileNames === undefined) return;
-
-            const fileName = fileNames[0];
-            const fileDir = path.parse(fileName).dir;
-            log.info(fileDir);
-
-            parseCSV(fileName);
-
-        });
-}
 
 
 // handle new file
@@ -273,63 +446,6 @@ function createNewWindow() {
     })
 }
 
-
-// Catch Item:add
-// ipcMain.on('item:add', function (e, item) {
-//     log.info("[MAIN] test:run");
-//     log.info(item);
-//     mainWindow.webContents.send('item:add', item);
-//     addWindow.close();
-// });
-
-// Catch Item:add
-ipcMain.on('test:load', function (e, item) {
-    log.info("[MAIN] test:load");
-    log.info('load vocabulary');
-    log.info(item);
-    loadCSVFile();
-    log.info("[MAIN] test:load END");
-});
-
-// Catch test:answer
-ipcMain.on('test:answer', function (e, item) {
-    log.info("[MAIN] test:answer");
-    log.info('Checking %s', item);
-    log.info(item);
-    var result = checkVocabulary(item)
-    var returnResult = { "text" : result, "ok" : false };
-
-    if (result == "OK") {
-        returnResult.ok = true;
-    }
-    mainWindow.webContents.send("test:result", returnResult);
-    // get next vocabulary and sent it with current stats
-    var entry = nextVocabulary();
-    sendStats();
-    log.info("[MAIN] test:answer END");
-});
-
-// check if we have a vocabulary file to open from user preferences
-ipcMain.on('test:ready', function () {
-    log.info("[MAIN] test:ready");
-    if (activeVocabulary) {
-        log.info("Tried to reload");
-    } else {
-        log.info('MainWindow is ready');
-        loadLastFile();
-    }
-    sendFileInfo();
-    log.info("[MAIN] test:ready END");
-});
-
-// First Vocabulary --  Item:add
-ipcMain.on('test:run', function (e, item) {
-    log.info("[MAIN] test:run");
-    nextVocabulary();
-    //
-    //mainWindow.webContents.send("test:display", entry.word);
-    log.info("[MAIN] test:run END");
-});
 
 // Create Menu template
 
@@ -358,6 +474,7 @@ const mainMenuTemplate = [{
     ]
 }];
 
+
 // if mac add empty
 if (process.platform == 'darwin') {
     mainMenuTemplate.unshift({});
@@ -383,3 +500,4 @@ if (process.env.NODE_ENV !== 'production') {
             }]
     })
 }
+
