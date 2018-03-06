@@ -8,6 +8,7 @@ module.exports = {
 
 const nodemailer = require('nodemailer');
 const log = require('electron-log');
+const dateFormat = require('dateformat');
 
 log.debug("***********************");
 
@@ -61,8 +62,8 @@ function getInfoMail(testData) {
         "Beginn:\t\t" + testData.started + "\n" +
         "Ende:\t\t" + testData.finished + "\n" +
         "Note:\t\t" + testData.grade + "\n" +
-        "Dauer:\t\t" + testData.started + " Sekunden\n" +
-        "Benutzer:\t\t" + currentUser + "\n" +
+        "Dauer:\t\t" + testData.duration + " Sekunden\n" +
+        "Benutzer:\t\t" + testData.user + "\n" +
         "Vokabeln:\t" + testData.targetCount + "\n" +
         "Davon Falsch:\t\t" + testData.error + "\n" +
         "Abfrageart:\t\t" + testData.type + "\n" +
@@ -72,22 +73,39 @@ function getInfoMail(testData) {
     info = info + "\nFalsch beantwortet:" + falscheFragenText + "\n\n\nRichtig beantwortet: " + richtigeFragenText
     return info;
 }
+
 function getInfoMailHTML(testData) {
-    var falscheFragenTextHTML = "unknown";
-    var richtigeFragenTextHTML = "unknown";
+
+	var falscheFragenTextHTML = "<table><tr><th>Frage</th><th>Antwort</th><th>Richtige Antwort</th></tr>";
+	for ( var i in testData.wrongAnswers ) {
+		var entry = testData.wrongAnswers[i];
+		falscheFragenTextHTML += "<tr><td>" +entry.word + "</td><td>" + entry.translation +  "</td><td>" + entry.correct_translation + "</td></tr>"
+
+	}
+	falscheFragenTextHTML += "</table>";
+	
+	var richtigeFragenTextHTML = "<table><tr><th>Frage</th><th>Antwort</th><th>Richtige Antwort</th></tr>";
+	for ( var i in testData.correctAnswers ) {
+		var entry = testData.correctAnswers[i];
+		richtigeFragenTextHTML += "<tr><td>" +entry.word + "</td><td>" + entry.translation +  "</td><td>" + entry.correct_translation + "</td></tr>"
+
+	}
+	richtigeFragenTextHTML += "</table>";
+	;
+	// Saturday, June 9th, 2007, 5:46:21 PM
     var infoHTML =
-        "<h1>Vokabeltrainer :: " + currentUser + " :: " + testData.type + "</h1>" +
+        "<h1>Vokabeltrainer :: " + testData.user + " :: " + testData.type + "</h1>" +
         "<table>" +
-        "<tr><td>Gestartet am:</td><td><b>" + testData.started + "</b></td></tr>" +
-        "<tr><td>Beginn:</td><td><b>" + testData.started + "</b></td></tr>" +
-        "<tr><td>Ende:</td><td><b>" + testData.finished + "</b></td></tr>" +
-        "<tr><td>Note:</td><td style=\"color: #FF0000 !important;\"><b>" + testData.grade + "</b></td></tr>" +
-        "<tr><td>Dauer:</td><td><b>" + testData.started + " Sekunde/n</b></td></tr>" +
-        "<tr><td>Benutzer:</td><td><b>" + currentUser + "</b></td></tr>" +
+        "<tr><td>Gestartet am:</td><td><b>" + dateFormat(testData.started, "HH:MM:ss") + "</b></td></tr>" +
+		"<tr><td>Note:</td><td style=\"color: #FF0000 !important;\"><b>" + testData.grade + "</b></td></tr>" +
+		"<tr><td>Beginn:</td><td><b>" + dateFormat(testData.started, "HH:MM:ss") + "</b></td></tr>" +
+        "<tr><td>Ende:</td><td><b>" + dateFormat(testData.finished, "HH:MM:ss") + "</b></td></tr>" +
+        "<tr><td>Dauer:</td><td><b>" + testData.duration + " Sekunde/n</b></td></tr>" +
+        "<tr><td>Benutzer:</td><td><b>" + testData.user + "</b></td></tr>" +
         "<tr><td>Vokabeln:</td><td><b>" + testData.targetCount + "</b></td></tr>" +
         "<tr><td>Davon Falsch:</td><td><b>" + testData.error + "</b></td></tr>" +
         "<tr><td>Abfrageart:</td><td><b>" + testData.type + "</b></td></tr>" +
-        "<tr><td>Vokabeldatei</td><td><b>" + testData.file + "</b></td></tr>" +
+        "<tr><td>Vokabeldatei</td><td><b>" + testData.fileName + "</b></td></tr>" +
         "</table>";
     infoHTML = css + infoHTML + "<h2>Falsch beantwortet:</h2>" + falscheFragenTextHTML + "<h2>Richtig beantwortet:</h2> " + richtigeFragenTextHTML
     return infoHTML;
