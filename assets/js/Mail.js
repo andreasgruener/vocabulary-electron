@@ -20,7 +20,7 @@ function sendMailInternal(testRunData) {
         secure: true, // true for 465, false for other ports
         auth: {
             user: "vokabel-trainer@akkga.com",
-            pass: "C3kaa446rm"
+            pass: ""
         }
     });
     log.debug("--- MAIL --- Connected");

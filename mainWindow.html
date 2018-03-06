@@ -66,7 +66,7 @@
 
                         <div class="row">
                             <div class="mr-auto p-2">
-                                <h2 id="vocabulary-word">Card Title</h2>
+                                <h2 id="vocabulary-word">No Data</h2>
                             </div>
                             <div class="p-2 bd-highlight">
                                 <span id="vocabulary-correct" class="badge badge-success" data-badge-caption="Correct">Correct 4</span>
@@ -130,8 +130,8 @@
 
             <div class="row">
                 <div class="col-5">
-                    <p id="info">Vocabulary Test</p>
-                    <button id="loaddata" class="btn">Load Vocabulary...</button>
+                    <p id="fileInfoElement">Vocabulary Test</p>
+                    <button id="loadFileButton" class="btn">Load File ...</button>
                     <button id="showParseErrors" type="button" class="btn btn-danger">
 
                         <span id="showParseErrorCount" class="badge badge-light">4</span>
@@ -139,14 +139,14 @@
                 </div>
 
                 <div class="col-2">
-                    <div class="form-check">
-                        <input type="checkbox" class="form-check-input" id="exampleCheck1">
-                        <label class="form-check-label" for="exampleCheck1">Speech</label>
-                    </div>
+                    <div></div>
                 </div>
 
                 <div class="col-5">
-                    <p id="info">No vocabulary is active.</p>
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="speechActive">
+                        <label class="form-check-label" for="exampleCheck1">Speech</label>
+                    </div>
                     <form onsubmit="return false">
                         <div class="input-group">
                             <div class="input-group-prepend">
@@ -188,11 +188,11 @@
         var parseErrorsList = []; // store last parseErrors
 
         const { ipcRenderer } = electron;
-        const runTestElement = document.querySelector('#runtest');
+        const runTestButton = document.querySelector('#runtest');
         const runTestCountElement = document.querySelector('#runtestcount');
         const runTestTypeElement = document.querySelector('#runtesttype');
-        const loadElement = document.querySelector('#loaddata');
-        const infoElement = document.querySelector('#info');
+        const loadFileButton = document.querySelector('#loadFileButton');
+        const fileInfoElement = document.querySelector('#fileInfoElement');
         const wordElement = document.querySelector('#vocabulary-word');
         const translationElement = document.querySelector('#vocabulary-translation');
         const errorElement = document.querySelector('#errorDisplay');
@@ -201,6 +201,8 @@
         const parseErrorsText = document.querySelector('#parse-errors');
         const showParseErrorsButton = document.querySelector('#showParseErrors');
         const showParseErrorsCountElement = document.querySelector('#showParseErrorCount');
+        const speechActiveCheckBox = document.querySelector('#speechActive');
+
         const form = document.querySelector('form');
 
         const testFormCloseElement = document.querySelector('#test-close');
@@ -215,6 +217,7 @@
             log.info('[RENDERER] show tests ..');
             navigationCardsElement.hidden = true;
             testCardElement.hidden = false;
+            runTestButton.disabled = true;
             //  errorCardElement.hidden = false;
             //   parseErrorsElement.hidden = false;
         }
@@ -226,119 +229,109 @@
             //  errorCardElement.hidden = true;
             //    parseErrorsElement.hidden = true;
             errorElement.innerHTML = '';
+            runTestButton.disabled = false;
 
         }
 
-        function displayStats(stats) {
-            log.debug('[RENDERER] Display Stats ..');
-            var remaining = stats.targetCount - stats.correct - stats.error;
-            log.debug("CALC %s = %s - %s -%s", remaining, stats.total, stats.correct, stats.error);
-            testRemainingElement.innerHTML = remaining;
-            testErrorElement.innerHTML = stats.error;
-            // reset class
-            testCorrectElement.innerHTML = stats.correct;
-            log.debug('[RENDERER] test:fileName: %s / %s', stats.fileName, stats.file);
-            infoElement.innerHTML = stats.file + " (" + stats.size + ")";
-            log.debug(stats.parseErrors);
-            log.debug(stats.parseErrors.length);
-            if (stats.parseErrors.length > 0) {
-                log.debug("*****");
-                parseErrorsList = stats.parseErrors;
+
+        //  show file info
+        ipcRenderer.on('test:fileInfo', function (e, vData) {
+            log.info('[RENDERER] test:fileInfo vData: %s', vData.hasError);
+        //    log.info(vData.parseErrors);
+            log.debug('[RENDERER] test:fileName: %s / %s', vData.fileName, vData.fullPath);
+            fileInfoElement.innerHTML = "Vocabulary: " + vData.fileName + " (" + vData.size + ")";
+            //vData.printInfo();
+            // set main display fr file info
+            if (vData.hasError) {
+                parseErrorsList = vData.parseErrors;
                 showParseErrorsButton.className = "btn btn-danger";
-                showParseErrorsCountElement.innerHTML = stats.parseErrors.length;
-            }
-            else {
+                showParseErrorsCountElement.innerHTML = vData.parseErrors.length;
+            } else {
                 parseErrorsList = [];
                 showParseErrorsButton.className = "btn btn-success";
-                showParseErrorsCountElement.innerHTML = "0";
+                showParseErrorsCountElement.innerHTML = "OK";
+                // popup data remember data for later
             }
-        }
+        });
 
-        form.addEventListener('submit', function () {
-            log.info('[RENDERER] Submitting..');
-            var translation = translationElement.value;
-            var word = wordElement.innerHTML;
-            var check = {};
-            check['word'] = word;
-            check['translation'] = translation;
-            testErrorElement.className = "badge badge-danger right";
-            testCorrectElement.className = "badge badge-success";
-            log.info('[RENDERER] Submitting %s', check.word);
-            ipcRenderer.send("test:answer", check);
-            translationElement.value = "";
-            testErrorElement.class
-            errorElement.innerHTML = "";
+        //  show question
+        ipcRenderer.on('test:display', function (e, testRun) {
+            log.info('[RENDERER] test:display');
+            log.info(testRun.currenEntry);
+            wordElement.innerHTML = testRun.currentEntry.word;
+            var remaining = testRun.targetCount - testRun.correct - testRun.error;
+            testRemainingElement.innerHTML = remaining;
+            testErrorElement.innerHTML = testRun.error;
+            // reset class
+            testCorrectElement.innerHTML = testRun.correct;
+            log.debug('[RENDERER] Display StatS : Remaining %s = Total %s - Correct %s - Error %s', remaining, testRun.total, testRun.correct, testRun.error);
 
         });
 
-        ipcRenderer.on('test:result', function (e, item) {
-            log.info('[RENDERER] test:result Got result %s', item);
+        // show answer
+        ipcRenderer.on('test:result', function (e, testRun) {
+            log.info('[RENDERER] test:result Got result %s', testRun);
             var spanElement = document.createElement("h5");
-            if (item.ok) {
+            if (testRun.answerIsCorrect) {
                 spanElement.innerHTML = "Richtig!";
                 spanElement.className = "animated bounce";
                 testCorrectElement.className += " animated wobble";
             } else {
-                spanElement.innerHTML = "Richtig wäre: " + item.text;
+                spanElement.innerHTML = "Richtig wäre: " + testRun.correctTranslation;
                 spanElement.className = "animated rollIn";
                 testErrorElement.className += " animated bounce";
-                say.speak(item.text);
+                if (speechActiveCheckBox.checked) {
+                    say.speak(testRun.correctTranslation);
+                }
             }
             errorElement.appendChild(spanElement);
         });
 
-        ipcRenderer.on('test:over', function (e, testRunData) {
+        // show over
+        ipcRenderer.on('test:over', function (e, testRun) {
             log.info('[RENDERER] test:over Got result ');
             endTest();
-            var successMessage = "You did a test with " + testRunData.targetCount + " words , you made " + testRunData.error + " errors and " + testRunData.correct + " were correct answers!";
+            var successMessage = "You did a test with " + testRun.targetCount + " words , you made " + testRun.error + " errors and " + testRun.correct + " were correct answers!";
 
-            if (testRunData.grade < 2) {
-                swal("" + testRunData.grade + " - Great job!", successMessage, "success");
-            } else if (testRunData.grade < 3) {
-                swal("" + testRunData.grade + " - Good job!", successMessage, "info");
-            } else if (testRunData.grade < 4) {
-                swal("" + testRunData.grade + " - Time to Improve!", successMessage, "warning");
+            if (testRun.grade < 2) {
+                swal("" + testRun.grade + " - Great job!", successMessage, "success");
+            } else if (testRun.grade < 3) {
+                swal("" + testRun.grade + " - Good job!", successMessage, "info");
+            } else if (testRun.grade < 4) {
+                swal("" + testRun.grade + " - Time to Improve!", successMessage, "warning");
             }
             else {
-                swal("" + testRunData.grade + " - Failed!", successMessage, "error");
+                swal("" + testRun.grade + " - Failed!", successMessage, "error");
             }
             var liElement = document.createElement("li");
-            liElement.innerHTML = "Grade <b>" + testRunData.grade + "</b> (" + testRunData.file + ") :: " + successMessage;
+            liElement.innerHTML = "<h4>Grade " + testRun.grade + "</h4> (" + testRun.vData.fileName + ")<br/> " + successMessage;
             resultsElement.appendChild(liElement);
         });
 
-        //  add item
-        ipcRenderer.on('test:display', function (e, testRunData) {
-            log.info('[RENDERER] test:display');
-            log.info(testRunData);
-            wordElement.innerHTML = testRunData.word;
-            displayStats(testRunData);
-        });
 
-
-        ipcRenderer.on('test:stats', function (e, stats) {
-            log.info('[RENDERER] test:stats');
-            displayStats(stats);
-        });
-
-
-        testFormCloseElement.addEventListener('click', closeForm);
-        function closeForm() {
+        testFormCloseElement.addEventListener('click', closeTestRun);
+        function closeTestRun() {
             log.info('[RENDERER] endTest');
             endTest();
         }
 
+
+
         showParseErrorsButton.addEventListener('click', closeForm);
         function closeForm() {
-            log.info('[RENDERER] parseErrors');
+            log.info('[RENDERER] parseErrors 2');
             var errors = "";
             if (parseErrorsList && parseErrorsList.length > 0) {
                 errors = '<ul class="list-group">';
                 for (var i = 0; i < parseErrorsList.length; i++) {
                     var error = parseErrorsList[i];
-
-                    errors += '<li class="list-group-item">' + error.word + " : <i>" + error.error + "</i><br/>" +
-                        "<small>" + error.raw + "</small></li>";
+                    if (error.spellingError) {
+                        errors += '<li class="list-group-item"><span class="text-danger">' + error.word + "</span> <br/>" +
+                            "<small>" + error.error + "</small></li>";
+                    } else {
+                        errors += '<li class="list-group-item"><span class="text-danger">' + error.word + "</span>  <i>(Data: " + error.raw + ")</i><br/>" +
+                            "<small>" + error.error + "</small></li>";
+                    }
                 }
                 errors += "</ul>";
                 log.debug("ERRORS" + errors);
@@ -352,7 +345,7 @@
         //
         // runtest
         //
-        runTestElement.addEventListener('click', runTest);
+        runTestButton.addEventListener('click', runTest);
         function runTest(e) {
             var count = runTestCountElement.value;
             var type = runTestTypeElement.value;
@@ -360,8 +353,27 @@
             ipcRenderer.send("test:run", count, type);
             showTest();
         }
+
+        // submit answer
+        form.addEventListener('submit', function () {
+
+
+            var check = {
+                word: wordElement.innerHTML,
+                translation: translationElement.value,
+            };
+            log.info('[RENDERER] Submitting %s/%s', check.word, check.translation);
+            ipcRenderer.send("test:answer", check);
+
+            testErrorElement.className = "badge badge-danger right";
+            testCorrectElement.className = "badge badge-success";
+            translationElement.value = "";
+            errorElement.innerHTML = "";
+        });
+
+
         // loaddata
-        loadElement.addEventListener('click', loadTest);
+        loadFileButton.addEventListener('click', loadTest);
         function loadTest(e) {
             ipcRenderer.send("test:load")
         }

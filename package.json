@@ -15,15 +15,18 @@
     "animate.css": "^3.6.1",
     "bootstrap": "^4.0.0",
     "csv-parse": "^2.0.4",
+    "dateformat": "^3.0.3",
     "electron": "^1.8.2",
     "electron-log": "^2.2.14",
     "mqtt": "^2.15.3",
     "nodemailer": "^4.6.0",
     "say": "^0.14.0",
+    "spellchecker": "^3.4.4",
     "sweetalert2": "^7.12.15",
     "username": "^3.0.0"
   },
   "devDependencies": {
-    "electron-packager": "^11.0.1"
+    "electron-packager": "^11.0.1",
+    "electron-rebuild": "^1.7.3"
   }
 }
