@@ -25,7 +25,7 @@ var fileInfo;
 //process.env.NODE_ENV = 'production';
 
 let mainWindow;
-let addWindow;
+let editWindow;
 
 // First instantiate the class
 const store = new Store({
@@ -55,7 +55,7 @@ app.on('ready', function () {
         mainWindow.setPosition(x, y);
     }
     else {
-        log.debug("No stored Window position.")
+        log.debug("No stored Window position.");
     }
     //load html into window
     mainWindow.loadURL(url.format({
@@ -64,7 +64,7 @@ app.on('ready', function () {
         slashes: true
     }));
     // Quit App when closed ((X))
-    mainWindow.on('closed', function () { app.quit() });
+    mainWindow.on('closed', function () { app.quit(); });
 
     // The BrowserWindow class extends the node.js core EventEmitter class, so we use that API
     // to listen to events on the BrowserWindow. The resize event is emitted when the window size changes.
@@ -108,6 +108,12 @@ function nextVocabulary() {
     }
 }
 
+// Show Edit Window
+ipcMain.on('data:showEdit', function (e) {
+    log.info("[MAIN] data:showEdit ");
+    createNewWindow();
+    log.info("[MAIN] test:run END");
+});
 
 // First Vocabulary
 ipcMain.on('test:run', function (e, count, type) {
@@ -128,7 +134,7 @@ ipcMain.on('test:answer', function (e, checkEntry) {
     log.info("[MAIN] test:answer END");
 });
 
-// Catch Item:add
+// 
 ipcMain.on('test:load', function (e, item) {
     log.info("[MAIN] test:load");
     dialog.showOpenDialog(//{properties: ['openFile', 'openDirectory', 'multiSelections']});
@@ -172,21 +178,36 @@ ipcMain.on('program:ready', function () {
 // handle new file
 function createNewWindow() {
     // create new window
-    addWindow = new BrowserWindow({
-        width: 300,
-        height: 500,
+   editWindow = new BrowserWindow({
+        width: 1000,
+        height: 800,
         titel: 'New'
     });
     //load html into window
-    addWindow.loadURL(url.format({
-        pathname: path.join(__dirname, 'addWindow.html'),
+   editWindow.loadURL(url.format({
+        pathname: path.join(__dirname, 'editWindow.html'),
         protocol: 'file',
         slashes: true
     }));
-    addWindow.on('closed', function () {
-        addWindow = null;
-    })
+   editWindow.on('closed', function () {
+       editWindow = null;
+    });
+
+    editWindow.on('ready-to-show', function () {
+        editWindow = null;
+        log.info('[EDIT WINDOW] Ready');
+     });
+
+    
+    log.info('[EDIT WINDOW] Done');
 }
+
+// Show Edit Window
+ipcMain.on('edit:ready', function (e) {
+    log.info("[MAIN] edit:ready ");
+    editWindow.webContents.send("data:fileInfo", vData);
+    log.info("[MAIN] edit:ready");
+});
 
 
 // Create Menu template
@@ -239,7 +260,7 @@ if (process.env.NODE_ENV !== 'production') {
             {
                 role: 'reload'
             }]
-    })
+    });
 }
 
 

@@ -20,16 +20,24 @@ function sendMailInternal(testRunData) {
         secure: true, // true for 465, false for other ports
         auth: {
             user: "vokabel-trainer@akkga.com",
-            pass: ""
+            pass: "C3kaa446rm"
         }
     });
     log.debug("--- MAIL --- Connected");
-
+	var grade = "";
+	if ( testRunData.grade < 3 ) {
+		grade = "😀";
+	} else if ( testRunData.grade < 4 ) {
+		grade = "🤨";
+	} else {
+		grade = "🤮";
+	}
+	grade = grade + " Grade: " + testRunData.grade + " ";
     // setup email data with unicode symbols
     let mailOptions = {
         from: '"vokabel-trainer@akkga.com', // sender address
         to: 'andreas.gruener@akkga.com', // list of receivers
-        subject: 'Hello ✔', // Subject line
+        subject: grade + ' '+testRunData.user, // Subject line
         text: getInfoMail(testRunData), // plain text body
         html: getInfoMailHTML(testRunData) // html body
     };

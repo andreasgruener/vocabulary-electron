@@ -25,7 +25,7 @@ var VocabularyData = {
     },
     fileLoaded: function () {
         if (this.size > 0) {
-            return true
+            return true;
         }
         return false;
     },
@@ -110,7 +110,7 @@ var VocabularyData = {
                     row: i,
                     spellingError: false,
                     error: "Missing Translation, no semicolon"
-                }
+                };
                 //  log.info("[VD] PE: %s / %s", parseError.word, parseError.error);
                 this.parseErrors.push(parseError);
                 // log.info(this.parseErrors);
@@ -129,8 +129,9 @@ var VocabularyData = {
                     spellingError: true,
                     correctedWord: correctedWord,
                     error: "Spell Check error! Correct: <b>" + correctedWord +"</b>"
-                }
+                };
                 entry['spellingError'] = true;
+                entry['correctedWord'] = correctedWord;
                 this.parseErrors.push(parseError);
             }
             entry['word'] = word;
@@ -148,6 +149,6 @@ var VocabularyData = {
         log.info('[VD INFO] Vocabulary File=%s, Size=%s, hasErrors=%s, Errors=%s ', this.fileName, this.size, this.hasError, this.parseErrors.length);
     }
 
-}
+};
 
 module.exports = VocabularyData;

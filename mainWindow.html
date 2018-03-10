@@ -187,8 +187,11 @@
 
         var parseErrorsList = []; // store last parseErrors
 
-        const { ipcRenderer } = electron;
+        const {
+            ipcRenderer
+        } = electron;
         const runTestButton = document.querySelector('#runtest');
+        const enterDataButton = document.querySelector('#enterdata');
         const runTestCountElement = document.querySelector('#runtestcount');
         const runTestTypeElement = document.querySelector('#runtesttype');
         const loadFileButton = document.querySelector('#loadFileButton');
@@ -237,7 +240,7 @@
         //  show file info
         ipcRenderer.on('test:fileInfo', function (e, vData) {
             log.info('[RENDERER] test:fileInfo vData: %s', vData.hasError);
-        //    log.info(vData.parseErrors);
+            //    log.info(vData.parseErrors);
             log.debug('[RENDERER] test:fileName: %s / %s', vData.fileName, vData.fullPath);
             fileInfoElement.innerHTML = "Vocabulary: " + vData.fileName + " (" + vData.size + ")";
             //vData.printInfo();
@@ -264,7 +267,8 @@
             testErrorElement.innerHTML = testRun.error;
             // reset class
             testCorrectElement.innerHTML = testRun.correct;
-            log.debug('[RENDERER] Display StatS : Remaining %s = Total %s - Correct %s - Error %s', remaining, testRun.total, testRun.correct, testRun.error);
+            log.debug('[RENDERER] Display StatS : Remaining %s = Total %s - Correct %s - Error %s', remaining,
+                testRun.total, testRun.correct, testRun.error);
 
         });
 
@@ -291,7 +295,8 @@
         ipcRenderer.on('test:over', function (e, testRun) {
             log.info('[RENDERER] test:over Got result ');
             endTest();
-            var successMessage = "You did a test with " + testRun.targetCount + " words , you made " + testRun.error + " errors and " + testRun.correct + " were correct answers!";
+            var successMessage = "You did a test with " + testRun.targetCount + " words , you made " + testRun.error +
+                " errors and " + testRun.correct + " were correct answers!";
 
             if (testRun.grade < 2) {
                 swal("" + testRun.grade + " - Great job!", successMessage, "success");
@@ -299,17 +304,18 @@
                 swal("" + testRun.grade + " - Good job!", successMessage, "info");
             } else if (testRun.grade < 4) {
                 swal("" + testRun.grade + " - Time to Improve!", successMessage, "warning");
-            }
-            else {
+            } else {
                 swal("" + testRun.grade + " - Failed!", successMessage, "error");
             }
             var liElement = document.createElement("li");
-            liElement.innerHTML = "<h4>Grade " + testRun.grade + "</h4> (" + testRun.vData.fileName + ")<br/> " + successMessage;
+            liElement.innerHTML = "<h4>Grade " + testRun.grade + "</h4> (" + testRun.vData.fileName + ")<br/> " +
+                successMessage;
             resultsElement.appendChild(liElement);
         });
 
 
         testFormCloseElement.addEventListener('click', closeTestRun);
+
         function closeTestRun() {
             log.info('[RENDERER] endTest');
             endTest();
@@ -318,6 +324,7 @@
 
 
         showParseErrorsButton.addEventListener('click', closeForm);
+
         function closeForm() {
             log.info('[RENDERER] parseErrors 2');
             var errors = "";
@@ -326,18 +333,19 @@
                 for (var i = 0; i < parseErrorsList.length; i++) {
                     var error = parseErrorsList[i];
                     if (error.spellingError) {
-                        errors += '<li class="list-group-item"><span class="text-danger">' + error.word + "</span> <br/>" +
+                        errors += '<li class="list-group-item"><span class="text-danger">' + error.word +
+                            "</span> <br/>" +
                             "<small>" + error.error + "</small></li>";
                     } else {
-                        errors += '<li class="list-group-item"><span class="text-danger">' + error.word + "</span>  <i>(Data: " + error.raw + ")</i><br/>" +
+                        errors += '<li class="list-group-item"><span class="text-danger">' + error.word +
+                            "</span>  <i>(Data: " + error.raw + ")</i><br/>" +
                             "<small>" + error.error + "</small></li>";
                     }
                 }
                 errors += "</ul>";
                 log.debug("ERRORS" + errors);
                 swal("Errors in File!", errors, "error");
-            }
-            else {
+            } else {
                 swal("No Errors in File!", "Good Job!", "success");
             }
         }
@@ -346,12 +354,19 @@
         // runtest
         //
         runTestButton.addEventListener('click', runTest);
+
         function runTest(e) {
             var count = runTestCountElement.value;
             var type = runTestTypeElement.value;
             log.debug("Run %s with %s", count, type);
             ipcRenderer.send("test:run", count, type);
             showTest();
+        }
+
+        enterDataButton.addEventListener('click', showEdit);
+
+        function showEdit(e) {
+            ipcRenderer.send("data:showEdit");
         }
 
         // submit answer
@@ -374,6 +389,7 @@
 
         // loaddata
         loadFileButton.addEventListener('click', loadTest);
+
         function loadTest(e) {
             ipcRenderer.send("test:load")
         }
