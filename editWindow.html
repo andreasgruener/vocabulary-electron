@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>Edit Window</title>
+    <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="open-iconic/font/css/open-iconic-bootstrap.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css">
+
+</head>
+
+<body>
+    <nav>
+        <div class="nav-wrapper" style="background-color: #e3f2fd;">
+            <div class="nav-wrapper">
+                <h1 class="text-center">Edit Data Folder/File</h1>
+            </div>
+        </div>
+    </nav>
+    <table class="table table-striped table-sm">
+        <thead>
+            <tr>
+                <th scope="col">Nr</th>
+                <th scope="col">Foreign</th>
+                <th scope="col">Translation</th>
+                <th scope="col">Error</th>
+                <th scope="col">Action</th>
+            </tr>
+        </thead>
+        <tbody id="table-body">
+
+        </tbody>
+    </table>
+
+    <footer class="footer">
+        <div class="container">
+
+
+            <div class="row">
+                <div class="col-5">
+                </div>
+
+                <div class="col-2">
+                    <div></div>
+                </div>
+
+                <div class="col-5">
+
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const electron = require('electron');
+        const log = require('electron-log');
+        const swal = require('sweetalert2');
+        // const swal2 = require('swal-forms');
+        const {
+            ipcRenderer
+        } = electron;
+
+        const tableContentElement = document.querySelector('#table-body');
+
+        log.info('[EW] START EDIT');
+
+        ipcRenderer.on('data:fileInfo', function (e, vData) {
+            log.info('[EW] test:fileInfo');
+            //    log.info(vData);
+            var word_cnt = 0;
+            vData.data.forEach(function (element) {
+                //   log.info(element);
+                var tr = document.createElement("TR");
+                var td_no = document.createElement("TD");
+                td_no.innerHTML = word_cnt++;
+                var td_word = document.createElement("TD");
+                td_word.innerHTML = element.word;
+                var td_translation = document.createElement("TD");
+                td_translation.innerHTML = element.translation;
+                var td_error = document.createElement("TD");
+                td_error.innerHTML = "-";
+                if (element.spellingError) {
+                    td_error.innerHTML = element.correctedWord;
+                    tr.className = "bg-warning";
+                }
+                var td_action = document.createElement("TD");
+                var td_action_span = document.createElement("SPAN");
+                td_action_span.className = "oi oi-delete danger";
+                td_action_span.title = "Delete";
+                td_action_span.setAttribute("aria-hidden", "true");
+                td_action.appendChild(td_action_span);
+                tr.appendChild(td_no);
+                tr.appendChild(td_word);
+                tr.appendChild(td_translation);
+                tr.appendChild(td_error);
+                tr.appendChild(td_action);
+                tableContentElement.appendChild(tr);
+
+                td_word.addEventListener('click', showEdit);
+
+                function showEdit(e) {
+                    swal({
+                        title: element.word,
+                        input: 'text',
+                        showCancelButton: true,
+                        confirmButtonText: 'Submit',
+                        showLoaderOnConfirm: true,
+                        allowOutsideClick: () => !swal.isLoading()
+                    }).then((result) => {
+                        if (result.value) {
+                            td_word.innerHTML=result.value;
+                            // swal({
+                            //     type: 'success',
+                            //     title: 'Ajax request finished!',
+                            //     html: 'Submitted email: ' + result.value
+                            // })
+                        }
+                    })
+                }
+
+            });
+        });
+
+        ipcRenderer.send("edit:ready");
+        log.info('[EW] START DONE');
+    </script>
+</body>
+
+</html>
