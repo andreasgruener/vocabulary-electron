@@ -6,6 +6,7 @@ module.exports = {
 
 
 const mqtt = require('mqtt');
+const Settings = require('./Settings.js');
 
 
 function publishInternal(testRunData) {
@@ -24,21 +25,4 @@ function publishInternal(testRunData) {
         client.publish('presence', 'Hello mqtt');
     });
 }
-
-// "language": "Englisch",
-// "user": "greta",
-// "type": "Vokabeln",
-// "subtype": "source",
-// "subsubtype": "Unit3-neu.csv",
-// "version": "1.2",
-// "fehler": 4,
-// "created": "2018-03-01T09:24:29Z"
-//
-// fehler
-// gesamt
-// dauer
-// note
-//
-// /vocabulary/anton/latein/deklinieren/a-Deklination/pauken/note
-// /
 

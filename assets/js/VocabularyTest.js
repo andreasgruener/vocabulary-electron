@@ -16,12 +16,13 @@ var VocabularyTest = {
     questions: [],
     wrongAnswers: [],
     correctAnswers: [],
- //   askedIndices: [],
+    //   askedIndices: [],
     remainingIndices: [],
+    askedMultitranslations: [],
 
     grade: 0,
 
-    type: "N/A",
+    type: "N/A", // DE or EN
     started: "",
     finished: "",
     duration: 0, // in seconds
@@ -41,8 +42,9 @@ var VocabularyTest = {
         this.questions = [];
         this.wrongAnswers = [];
         this.correctAnswers = [];
-       // this.askedIndices= [];
-        this.remainingIndices= [];
+        // this.askedIndices= [];
+        this.remainingIndices = [];
+        this.askedMultitranslations = [];
         this.grade = 0;
         this.type = "N/A";
         this.started = "";
@@ -51,7 +53,7 @@ var VocabularyTest = {
     },
 
     start: function (c, t) {
-        log.info("[VT rest count=%s type=%s",c,t)
+        log.debug("[VT rest count=%s type=%s", c, t)
         this.reset();
         for (var i = 0; i < this.total; i++) {
             this.remainingIndices.push(i);
@@ -63,48 +65,105 @@ var VocabularyTest = {
     setVocabulary: function (vd) {
         this.vData = vd;
         this.total = vd.size;
+        this.fileName = vd.fileName;
+        this.fullPath = vd.fullPath;
     },
     next: function () {
-        log.info("[VT] Next Vocabulary %s : %s ", this.currentIndex, this.targetCount);
-        log.warn("[VT] vocabualry check %s - %s of %s",this.total, this.remainingIndices.length, this.targetCount);
-      
-        if ( this.remainingIndices.length <= 0 || 
-            ( this.total - this.remainingIndices.length ) > this.targetCount) {
-            log.warn("[VT] all vocabualry asked %s - %s of %s",this.total, this.remainingIndices.length, this.targetCount);
+        log.debug("");
+        log.debug("[VT] ### For type: %s", this.type);
+        log.debug("[VT] Next Vocabulary %s : %s ", this.currentIndex, this.targetCount);
+        log.info("[VT] vocabulary check remaining entries: %s total: %s target: %s (multiple translations per entry)",  this.remainingIndices.length, this.total, this.targetCount);
+
+        if (this.remainingIndices.length <= 0 ||  
+            (this.total - this.remainingIndices.length) >= this.targetCount) {
+            log.warn("[VT] all vocabualry asked %s - %s of %s", this.total, this.remainingIndices.length, this.targetCount);
             over = true;
+            this.targetCount = this.wrongAnswers.length + this.correctAnswers.length;
             return;
         }
         var random = Math.floor(Math.random() * Math.floor(this.remainingIndices.length));
         this.currentIndex = this.remainingIndices[random];
-        log.debug(this.remainingIndices);
-        this.remainingIndices.splice(random,1);
-        log.warn("[VT] vocabualry asked radnom=%s, index=%s (%s of %s)",random, this.currentIndex, this.remainingIndices.length, this.targetCount);
-        log.debug(this.remainingIndices);
+
         var entry = this.vData.data[this.currentIndex];
+        var multiTransCount = entry.translations.length;
+        var exitingMultitrans = this.askedMultitranslations[this.currentIndex];
+        log.debug(entry.translations);
+        log.debug("Size %s and type %s", multiTransCount, this.type);
+        if (this.type == "EN") {
+            entry.ask = entry.word;
+            this.remainingIndices.splice(random, 1);
+        } else if (this.type == "DE") {
+
+
+            if (multiTransCount > 1) { // multiple translation to ask
+              
+                var askedMultiTrans = exitingMultitrans;
+                var randomMulti = Math.floor(Math.random() * Math.floor(multiTransCount - 1));
+             
+                // check if got this before
+                if (askedMultiTrans) { // second++ time this entry
+                    randomMulti = Math.floor(Math.random() * Math.floor(askedMultiTrans.length - 1));
+                    log.debug("   [VT second time - random = %s", randomMulti);
+                    entry.ask = entry.translations[askedMultiTrans[randomMulti]];
+                    askedMultiTrans.splice(randomMulti, 1);
+                    if (askedMultiTrans.length < 1) {
+                        this.remainingIndices.splice(random, 1);
+                    }
+                  
+                    log.debug(randomMulti);
+                } else {
+                    askedMultiTrans = [];
+                    for (var m = 0; m < multiTransCount; m++) {
+                        askedMultiTrans.push(m);
+                    }
+                    log.debug("   [VT first time");
+                    askedMultiTrans.splice(randomMulti, 1);
+                    entry.ask = entry.translations[randomMulti];
+                    log.debug(askedMultiTrans);
+                }
+               
+                this.askedMultitranslations[this.currentIndex] = askedMultiTrans;
+            } else {
+                entry.ask = entry.translation;
+                this.remainingIndices.splice(random, 1);
+            }
+        } else {
+            log.error("Unsupported TYPE " + this.type);
+        }
+        log.debug("- 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 *+")
+        log.debug(this.remainingIndices);
+        log.debug(this.askedMultitranslations);
+        log.debug("- 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 *+")
+        
+        log.debug("[VT] ***** vocabualry asked random=%s, index=%s (%s of %s)", random, this.currentIndex, this.remainingIndices.length, this.targetCount);
+        //log.debug(this.remainingIndices);
+
+
+
         this.currentEntry = entry;
-        log.info("[VT] Next Vocabulary %S : %s ", entry.word, entry.translation);
+        log.debug("[VT] Next Vocabulary %s : %s ", entry.ask, entry.translation);
         return entry;
     },
     check: function (check) {
         this.currentCount++;
-        var askedEntry = {
-            word : check.word,
-            translation : check.translation,
-            correct_translation : this.currentEntry.translation
+        var askedEntry = {};
+        if (this.type == "EN") {
+            check.correct_translations = this.currentEntry.translations;
+        } else {
+            check.correct_translations = [this.currentEntry.word];
         }
-        log.info("[VT] To check %s/%s --> current %s/%s", check.word, check.translation,this.currentEntry.word,this.currentEntry.translation);
-        if (check.word == this.currentEntry.word &&
-            check.translation == this.currentEntry.translation) {
+        log.debug("[VT] To check %s / %s --> correct: %s ( %s/%s )", check.word_displayed, check.translation_entered, check.correct_translation, this.currentEntry.word, this.currentEntry.translation);
+        if (check.correct_translations.includes(check.translation_entered)) {
             this.correct++;
             this.answerIsCorrect = true;
-            this.correctAnswers.push(askedEntry);
-            log.info("[VT] CORRECT " + this.correctAnswer);
+            this.correctAnswers.push(check);
+            log.debug("[VT] CORRECT " + this.correctAnswer);
         } else {
             this.error++;
             this.answerIsCorrect = false;
-            this.wrongAnswers.push(askedEntry);
-            this.correctTranslation = this.currentEntry.translation;
-            log.info("[VT] WRONG " + this.correctTranslation);
+            this.wrongAnswers.push(check);
+            this.correctTranslations = check.correct_translations;
+            log.debug("[VT] WRONG %s", this.correctTranslations);
         }
         return this.answerIsCorrect;
     },
@@ -115,8 +174,8 @@ var VocabularyTest = {
         var gradePercent = percent * 10
         var factor = Math.floor(gradePercent / 75);
         var tgrade = 1 + factor * 0.5
-        // log.info("++ Percent %s = %s / %s ", percent, this.error, this.currentCount);
-        // log.info("++ Grade %s = 1 + %s *0,5 ", grade, factor);
+        // log.debug("++ Percent %s = %s / %s ", percent, this.error, this.currentCount);
+        // log.debug("++ Grade %s = 1 + %s *0,5 ", grade, factor);
         if (tgrade > 6) {
             tgrade = 6;
         }

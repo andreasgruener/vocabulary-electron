@@ -9,18 +9,20 @@ module.exports = {
 const nodemailer = require('nodemailer');
 const log = require('electron-log');
 const dateFormat = require('dateformat');
+const Settings = require('./Settings.js');
 
 log.debug("***********************");
 
 function sendMailInternal(testRunData) {
-    log.debug("--- MAIL --- Connected");
+	log.debug("--- MAIL --- Connected");
+	log.warn("******** SETTINGS " + Settings.MAIL_PASSWORT );
     let transporter = nodemailer.createTransport({
-        host: 'send.one.com',
-        port: 465,
-        secure: true, // true for 465, false for other ports
+        host: Settings.MAIL_HOST,
+        port: Settings.MAIL_PORT,
+        secure: Settings.MAIL_SECURE, // true for 465, false for other ports
         auth: {
-            user: "vokabel-trainer@akkga.com",
-            pass: "C3kaa446rm"
+            user: Settings.MAIL_USER,
+            pass: Settings.MAIL_PASS
         }
     });
     log.debug("--- MAIL --- Connected");
@@ -35,8 +37,8 @@ function sendMailInternal(testRunData) {
 	grade = grade + " Grade: " + testRunData.grade + " ";
     // setup email data with unicode symbols
     let mailOptions = {
-        from: '"vokabel-trainer@akkga.com', // sender address
-        to: 'andreas.gruener@akkga.com', // list of receivers
+        from: Settings.MAIL_USER, // sender address
+        to: Settings.MAIL_TO, // list of receivers
         subject: grade + ' '+testRunData.user, // Subject line
         text: getInfoMail(testRunData), // plain text body
         html: getInfoMailHTML(testRunData) // html body
@@ -87,7 +89,7 @@ function getInfoMailHTML(testData) {
 	var falscheFragenTextHTML = "<table><tr><th>Frage</th><th>Antwort</th><th>Richtige Antwort</th></tr>";
 	for ( var i in testData.wrongAnswers ) {
 		var entry = testData.wrongAnswers[i];
-		falscheFragenTextHTML += "<tr><td>" +entry.word + "</td><td>" + entry.translation +  "</td><td>" + entry.correct_translation + "</td></tr>"
+		falscheFragenTextHTML += "<tr><td>" +entry.word_displayed + "</td><td>" + entry.translation_entered +  "</td><td>" + entry.correct_translations + "</td></tr>";
 
 	}
 	falscheFragenTextHTML += "</table>";
@@ -95,7 +97,7 @@ function getInfoMailHTML(testData) {
 	var richtigeFragenTextHTML = "<table><tr><th>Frage</th><th>Antwort</th><th>Richtige Antwort</th></tr>";
 	for ( var i in testData.correctAnswers ) {
 		var entry = testData.correctAnswers[i];
-		richtigeFragenTextHTML += "<tr><td>" +entry.word + "</td><td>" + entry.translation +  "</td><td>" + entry.correct_translation + "</td></tr>"
+		richtigeFragenTextHTML += "<tr><td>" +entry.word_displayed + "</td><td>" + entry.translation_entered +  "</td><td>" + entry.correct_translations + "</td></tr>";
 
 	}
 	richtigeFragenTextHTML += "</table>";
@@ -113,7 +115,7 @@ function getInfoMailHTML(testData) {
         "<tr><td>Vokabeln:</td><td><b>" + testData.targetCount + "</b></td></tr>" +
         "<tr><td>Davon Falsch:</td><td><b>" + testData.error + "</b></td></tr>" +
         "<tr><td>Abfrageart:</td><td><b>" + testData.type + "</b></td></tr>" +
-        "<tr><td>Vokabeldatei</td><td><b>" + testData.fileName + "</b></td></tr>" +
+        "<tr><td>Vokabeldatei</td><td><b>" + testData.fullPath + "</b></td></tr>" +
         "</table>";
     infoHTML = css + infoHTML + "<h2>Falsch beantwortet:</h2>" + falscheFragenTextHTML + "<h2>Richtig beantwortet:</h2> " + richtigeFragenTextHTML
     return infoHTML;
@@ -296,4 +298,4 @@ table tr:hover td {
 	background: -moz-linear-gradient(top,  #f2f2f2,  #f0f0f0);	
 }
 </style>
-`
+`;

@@ -6,74 +6,190 @@
     <title>Edit Window</title>
     <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="open-iconic/font/css/open-iconic-bootstrap.css">
+    <link rel="stylesheet" href="node_modules/tags-input/tags-input.css">
+    <link rel="stylesheet" href="assets/css/app.css">
+    <link rel="stylesheet" href="assets/css/colors.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css">
 
 </head>
 
 <body>
-    <nav>
-        <div class="nav-wrapper" style="background-color: #e3f2fd;">
-            <div class="nav-wrapper">
-                <h1 class="text-center">Edit Data Folder/File</h1>
-            </div>
+
+    <header class="bg-orange">
+        <div class="container">
+            <h1 class="text-center">Edit Data Folder/File</h1>
         </div>
-    </nav>
-    <table class="table table-striped table-sm">
-        <thead>
-            <tr>
-                <th scope="col">Nr</th>
-                <th scope="col">Foreign</th>
-                <th scope="col">Translation</th>
-                <th scope="col">Error</th>
-                <th scope="col">Action</th>
-            </tr>
-        </thead>
-        <tbody id="table-body">
+    </header>
 
-        </tbody>
-    </table>
 
-    <footer class="footer">
+    <div class="container-fluid body-content">
+        <table class="table table-striped table-sm">
+            <thead>
+                <tr>
+                    <th scope="col">Nr</th>
+                    <th scope="col">Foreign</th>
+                    <th scope="col">Translation</th>
+                    <th scope="col">Error</th>
+                    <th scope="col">Action</th>
+                </tr>
+            </thead>
+            <tbody id="table-body">
+
+            </tbody>
+        </table>
+
+    </div>
+    <footer class="bg-orange">
         <div class="container">
 
 
             <div class="row">
-                <div class="col-5">
+                <div class="col-1">
+                    <div>&nbsp;</div>
+                    <button id="backButton" type="button" class="btn btn-default">Back</button>
                 </div>
 
+                <div class="col-4">
+                    <div>&nbsp;</div>
+                    <input id="new-foreign" size="30" class="form-control" placeholder="English" autofocus>
+
+                </div>
+                <div class="col-4">
+                    <div>&nbsp;</div>
+                    <span id="new-translation"></span>
+                    <!-- input id="new-translation" type="tags" placeholder="add..." /-->
+                </div>
+
+                <div class="col-1">
+                    <div>&nbsp;</div>
+                </div>
                 <div class="col-2">
-                    <div></div>
-                </div>
-
-                <div class="col-5">
-
+                    <div>&nbsp;</div>
+                    <button id="saveButton" type="button" class="btn btn-primary float-right">Save ..</button>
                 </div>
             </div>
         </div>
     </footer>
 
     <script>
+        var vData_SAVE; // data to save
         const electron = require('electron');
         const log = require('electron-log');
         const swal = require('sweetalert2');
+        const tagsInput = require('tags-input');
+
         // const swal2 = require('swal-forms');
         const {
             ipcRenderer
         } = electron;
 
         const tableContentElement = document.querySelector('#table-body');
+        const saveButton = document.querySelector('#saveButton');
+        const backButton = document.querySelector('#backButton');
 
+        const translation = document.querySelector('#new-translation');
+        const foreign = document.querySelector('#new-foreign');
         log.info('[EW] START EDIT');
+
+        function changedElement(element, position) {
+            // log.debug("[EW] Changed to " + element.word);
+            // log.debug("[EW] Changed from " + vData_SAVE.data[position-1].word);
+            saveButton.disabled = false;
+        }
+
+        function upsertTranslationTagInput(tags) {
+
+            tags.className = "formControl";
+            tags.setAttribute('type', 'tags');
+            tagsInput(tags);
+            return tags;
+        }
+
+        function showEditor() {
+            // add tags edit for input field
+            var tags = document.createElement("INPUT");
+            translation.innerHTML = "";
+            translation.appendChild(tags);
+            upsertTranslationTagInput(tags);
+            //   translation.focus();
+            tags.addEventListener('EscapePressed', function (e) {
+                log.warn("ESCAPE");
+
+            });
+            tags.addEventListener('EnterPressed', function (e) {
+                log.warn("ENTER on translation %s --> %s", foreign.value, tags.value);
+                addRow(foreign.value, tags.value);
+                foreign.value = "";
+                console.log(tags);
+                foreign.focus();
+                showEditor();
+             
+                // clear tags
+
+            });
+            foreign.addEventListener('keyup', function () {
+                if (event.key === "Enter") {
+                    log.warn("ENTER IN FOREIGN");
+                   // tags.focus();
+                }
+            });
+        }
+
+        function cleanRow(tr) {
+            tr.innerHTML = "";
+        }
+
+        function addRow(foreign, translation) {
+            log.debug("[EW] Adding %s --> %s", foreign, translation);
+
+            var entry = {
+                word: foreign,
+                translation: translation,
+                deleted: false,
+                changed: false,
+                translations: []
+            };
+            vData_SAVE.data.push(entry);
+            createRow(entry);
+            changedElement(entry, 0);
+        }
+
+        function createRow(element) {
+            var tr = document.createElement("TR");
+            var td_no = document.createElement("TD");
+            td_no.innerHTML = "";
+            var td_word = document.createElement("TD");
+            td_word.innerHTML = element.word;
+            var td_translation = document.createElement("TD");
+            td_translation.innerHTML = element.translation;
+            var td_error = document.createElement("TD");
+            var td_action = document.createElement("TD");
+            fillRow(tr, td_no, td_word, td_translation, td_error, td_action)
+            tableContentElement.appendChild(tr);
+        }
+
+        function fillRow(tr, td_no, td_word, td_translation, td_error, td_action) {
+            tr.appendChild(td_no);
+            tr.appendChild(td_word);
+            tr.appendChild(td_translation);
+            tr.appendChild(td_error);
+            tr.appendChild(td_action);
+        }
+
+
+
 
         ipcRenderer.on('data:fileInfo', function (e, vData) {
             log.info('[EW] test:fileInfo');
             //    log.info(vData);
             var word_cnt = 0;
+            vData_SAVE = vData;
             vData.data.forEach(function (element) {
                 //   log.info(element);
                 var tr = document.createElement("TR");
                 var td_no = document.createElement("TD");
-                td_no.innerHTML = word_cnt++;
+                td_no.innerHTML = ++word_cnt;
+                var currentPosition = word_cnt;
                 var td_word = document.createElement("TD");
                 td_word.innerHTML = element.word;
                 var td_translation = document.createElement("TD");
@@ -82,46 +198,143 @@
                 td_error.innerHTML = "-";
                 if (element.spellingError) {
                     td_error.innerHTML = element.correctedWord;
-                    tr.className = "bg-warning";
+                    tr.className = "bg-danger";
                 }
                 var td_action = document.createElement("TD");
                 var td_action_span = document.createElement("SPAN");
                 td_action_span.className = "oi oi-delete danger";
                 td_action_span.title = "Delete";
                 td_action_span.setAttribute("aria-hidden", "true");
-                td_action.appendChild(td_action_span);
-                tr.appendChild(td_no);
-                tr.appendChild(td_word);
-                tr.appendChild(td_translation);
-                tr.appendChild(td_error);
-                tr.appendChild(td_action);
-                tableContentElement.appendChild(tr);
-
-                td_word.addEventListener('click', showEdit);
-
-                function showEdit(e) {
+                td_action.addEventListener('click', function () {
                     swal({
-                        title: element.word,
-                        input: 'text',
+                        title: 'Are you sure?',
+                        text: "You won't be able to revert this!",
+                        type: 'warning',
                         showCancelButton: true,
-                        confirmButtonText: 'Submit',
-                        showLoaderOnConfirm: true,
-                        allowOutsideClick: () => !swal.isLoading()
+                        confirmButtonColor: '#3085d6',
+                        cancelButtonColor: '#d33',
+                        confirmButtonText: 'Yes, delete it!',
+                        cancelButtonText: 'No, keep it!'
                     }).then((result) => {
                         if (result.value) {
-                            td_word.innerHTML=result.value;
-                            // swal({
-                            //     type: 'success',
-                            //     title: 'Ajax request finished!',
-                            //     html: 'Submitted email: ' + result.value
-                            // })
+                            tr.className = "deleted-row teal";
+                            element.deleted = "true";
+                            changedElement(element, currentPosition);
+                        } else {
+                            tr.className = "";
+                            element.deleted = "false";
                         }
-                    })
-                }
+                    });
+                });
+
+                td_action.appendChild(td_action_span);
+                fillRow(tr, td_no, td_word, td_translation, td_error, td_action);
+                tableContentElement.appendChild(tr);
+
+                // EDIT WORD
+                td_word.addEventListener('click', function () {
+                    log.info('[SWHE] START DONE');
+                    var input_element = document.createElement("INPUT");
+                    input_element.setAttribute("type", "text");
+                    input_element.className = "bg-yellow";
+                    input_element.value = td_word.innerHTML;
+                    cleanRow(tr);
+                    fillRow(tr, td_no, input_element, td_translation, td_error, td_action);
+                    input_element.focus();
+                    input_element.addEventListener('keyup', function () {
+                        if (event.key === "Enter") {
+                            td_word.innerHTML = input_element.value;
+                            td_word.className = "teal font-weight-bold";
+                            cleanRow(tr);
+                            fillRow(tr, td_no, td_word, td_translation,
+                                td_error,
+                                td_action);
+                            // need to store the changed entry
+                            element.word = input_element.value;
+                            element.changed = true;
+                            //log.debug(vData);
+                            changedElement(element, currentPosition);
+                        }
+                        if (event.key === "Escape") {
+                            cleanRow(tr);
+                            fillRow(tr, td_no, td_word, td_translation,
+                                td_error,
+                                td_action);
+                        }
+                    });
+                });
+
+                // EDIT TRANSLATION
+                td_translation.addEventListener('click', function () {
+                    log.info('[STHE] START DONE');
+                    var input_td = document.createElement("TD");
+                    var input_element = document.createElement("INPUT");
+                    //  input_element.setAttribute("type", "text");
+                    input_element.setAttribute('type', 'tags');
+
+                    input_element.className = "bg-yellow";
+                    input_element.value = td_translation.innerHTML;
+                    input_td.appendChild(input_element);
+
+                    cleanRow(tr);
+                    fillRow(tr, td_no, td_word, input_td, td_error, td_action);
+                    tagsInput(input_element);
+                    input_element.focus();
+                    input_element.addEventListener('EscapePressed', function (e) {
+                        log.warn("ESCAPE");
+                        cleanRow(tr);
+                        fillRow(tr, td_no, td_word, td_translation,
+                            td_error,
+                            td_action);
+
+                    });
+                    input_element.addEventListener('EnterPressed', function (e) {
+                        log.warn("ENTER");
+                        td_translation.innerHTML = input_element.value;
+                        td_translation.className = "teal font-weight-bold";
+                        cleanRow(tr);
+                        fillRow(tr, td_no, td_word, td_translation, td_error,
+                            td_action);
+                        // need to store the changed entry
+                        element.translation = input_element.value;
+                        element.changed = true;
+                        log.warn(input_element.value);
+                        changedElement(element, currentPosition);
+
+                    });
+                });
+
 
             });
         });
 
+
+        saveButton.addEventListener('click', function () {
+            swal({
+                title: 'Are you sure?',
+                text: "You won't be able to revert this!",
+                type: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, save!',
+                cancelButtonText: "No, don't!"
+            }).then((result) => {
+                if (result.value) {
+                    ipcRenderer.send("data:save", vData_SAVE);
+                } else {
+                    // do nothing
+                }
+            });
+        });
+
+        backButton.addEventListener('click', function () {
+            ipcRenderer.send("data:close");
+        });
+
+        showEditor();
+
+        saveButton.disabled = true;
         ipcRenderer.send("edit:ready");
         log.info('[EW] START DONE');
     </script>

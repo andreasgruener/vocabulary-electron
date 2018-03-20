@@ -1,4 +1,4 @@
-cheese;Käse:Emmentaler
+cheese;Käse
 Monday;Montag
 Tuesday;Dienstag
 Wednesday;Mittwoch
@@ -25,7 +25,7 @@ It's ten oh six.;Es ist sechs nach zehn.
 It's quarter past ten.;Es ist viertel nach zehn.
 It's half past ten.;Es ist halb elf.
 It's quarter to eleven.;Es ist viertel vor elf.
-It's nine minuites to elefen.;Es ist neun Minuiten vor elf.
+It's nine minuites to eleven.;Es ist neun Minuiten vor elf.
 It's one o'clock a.m.;Es ist ein Uhr.
 It's one o'clock p.m.; Es ist 13 Uhr.
 every;jeder:jede:jedes
@@ -33,7 +33,7 @@ to come;kommen
 home;nach Hause
 Let's go home now.;Lass uns nach Hause gehen.
 dinner;Abendessen
-at 7;um halb acht
+at 7:30;um halb acht
 then;dann:danach
 never;nie:niemals
 morning;Morgen:Vormittags
@@ -44,7 +44,7 @@ after that;danach
 on Monday;montags
 netball;Korbball
 right away;sofort:gleich
-other;anders:andere
+other;anders:andere;weitere
 often;oft:häufig
 in the evenings;abends
 evening;Abend
@@ -67,7 +67,7 @@ She gets on my nerves.;Sie geht mir auf die Nerven.
 granny;Oma
 to look after;aufpassen auf:hüten:sich kümmern um
 to ask;fragen:bitten
-to talk;sprechen
+to talk;sprechen;reden
 to stop;aufhören:anhalten:stoppen
 to chat;plaudern:chatten:sich online unterhalten
 even;sogar:selbst
@@ -103,7 +103,7 @@ acting a scene;eine Theaterszene spielen
 too;zu
 scene;Szene
 typical;typisch
-country;Land:Länder
+country:countries;Land:Länder
 interesting;interessant
 to look;schauen:sehen:aussehen
 in the mornings;morgens:vormittags
@@ -154,14 +154,14 @@ person;Person:Mensch
 people;Menschen:Personen
 box;Box:Kasten:Schachtel:Kiste
 to open;öffnen:aufmachen
-train;undefined
+train:Zug
 window;Fenster
 to hold;halten:festhalten
 open;offen:geöffnet:aufgeschlagen
 woman;Frau
 women;Frauen
-man;undefined
-men;undefined
+man:Mann
+men:Männer
 to jump the queue;sich vordrängeln
 British;britisch:Brite:Britin
 escalator;Rolltreppe

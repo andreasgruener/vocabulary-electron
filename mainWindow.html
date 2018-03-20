@@ -3,67 +3,31 @@
 <title>Vokabeltrainer</title>
 <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
 <link rel="stylesheet" href="assets/css/app.css">
+<link rel="stylesheet" href="assets/css/colors.css">
+
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css">
 
 </head>
 
 <body>
-    <nav class="navbar navbar-light" style="background-color: #e3f2fd;">
-        <div class="nav-wrapper">
-            <h1>Hasenkopf Vocabulary</h1>
-        </div>
-    </nav>
-    <div class="container">
-        <div id="spacer" class="row">
-            <div class="col">&nbsp;
+    <header class="bg-green">
+        <img src="assets/images/vocabulary-names.png" class="mx-auto d-block" style="width: 474px; height: 82px;" alt="Card image cap">
+        <!-- <h1 class="text-center">Vocabulary Trainer</h1> -->
+    </header>
+
+    <div class="container-fluid body-content">
+        <div id="navigationsCards" class="row">
+            <div class="col-lg-12 keyvisual">
+                <img class="card-img-top" src="assets/images/vocabulary.jpg" alt="Card image cap">
             </div>
         </div>
 
-        <div id="navigationCards" class="row">
-            <div class="col xl6 m6">
-                <div class="card" style="width: 20 rem;">
-                    <img class="card-img-top" src="assets/images/study.jpg" alt="Card image cap">
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-12">
-                                <h5 class="card-title">Study</h5>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-12 ">
-                                <small>
-                                    <ul id="parse-errors"></ul>
-                                </small>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-12 ">
 
-                                <ul id="vocabulary-results"></ul>
-
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col xl6 m6">
-                <div class="card" style="width: 20 rem;">
-                    <img class="card-img-top" src="assets/images/write.jpg" alt="Card image cap">
-                    <div class="card-body">
-                        <h5 class="card-title">Edit Data</h5>
-                        <p>Enter vocabulary here</p>
-                        <a id="enterdata" href="#">Enter Data</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="row">
-            <div id='testCard' class="col-12">
+        <div id='testCard' class="row">
+            <div class="col-sm-12 col-lg-12 col-xl-12">
                 <!-- VOCABULARY CARD -->
                 <div class="card">
                     <div class="card-header">
-
                         <div class="row">
                             <div class="mr-auto p-2">
                                 <h2 id="vocabulary-word">No Data</h2>
@@ -84,32 +48,33 @@
                             </div>
                         </div>
                         <div class="row">
-                            <div class="mr-auto p-2">
-                                <span id="errorDisplay" class="animated hinge"></span>
+                            <div id="errorDisplay" class="col-12">
+
                             </div>
                         </div>
                     </div>
-                    <div class="card-body">
+                    <form onsubmit="return false">
+                        <div class="form-group">
+                            <div class="card-body">
 
-                        <div class="d-flex p-2">
-                            <form onsubmit="return false">
-                                <div class="form-group">
-                                    <div class="row">
-                                        <div class="col-3">
-                                            <label for="exampleInputEmail1">Your translation: </label>
-                                        </div>
-                                        <div class="col-6">
-                                            <input id="vocabulary-translation" class="form-control" placeholder="..type it here .." autofocus>
-                                            <small id="emailHelp" class="form-text text-muted">Provide the translation and press Return or submit.</small>
-                                        </div>
-                                        <div class="col-3">
-                                            <button type="submit" class="btn btn-primary">Submit</button>
-                                        </div>
+
+
+                                <div class="row">
+                                    <div class="col-3">
+                                        <label for="exampleInputEmail1">Your translation: </label>
+                                    </div>
+                                    <div class="col-6">
+                                        <input id="vocabulary-translation" size="30" class="form-control" placeholder="..type it here .." autofocus>
+                                        <small id="emailHelp" class="form-text text-muted">Provide the translation and press Return or submit.</small>
+                                    </div>
+                                    <div class="col-3">
+                                        <button type="submit" class="btn btn-primary">Submit</button>
                                     </div>
                                 </div>
-                            </form>
+                            </div>
+
                         </div>
-                    </div>
+                    </form>
                 </div>
             </div>
             <!-- <div class="col-4">
@@ -122,16 +87,18 @@
                     </div>
                 </div>
             </div> -->
+
         </div>
     </div>
-    <footer class="footer">
+    <footer class="footer bg-green">
         <div class="container">
 
 
             <div class="row">
                 <div class="col-5">
-                    <p id="fileInfoElement">Vocabulary Test</p>
-                    <button id="loadFileButton" class="btn">Load File ...</button>
+                   <div  id="fileInfoElement" >No File Information</div>
+                    <button id="editData" class="btn btn-default">Edit ..</button>
+                    <button id="loadFileButton" class="btn btn-primary">Load File ...</button>
                     <button id="showParseErrors" type="button" class="btn btn-danger">
 
                         <span id="showParseErrorCount" class="badge badge-light">4</span>
@@ -151,21 +118,22 @@
                         <div class="input-group">
                             <div class="input-group-prepend">
                                 <select id="runtesttype" class="form-control">
-                                    <option value="DE">Deutsch</option>
-                                    <option value="FOREIGN" selected>Foreign Language</option>
-                                    <option value="MIX">Mixed</option>
+                                    <option value="DE" selected>Deutsch</option>
+                                    <option value="EN">English</option>
+                                    <!--option value="MIX">Mixed</option-->
 
                                 </select>
                             </div>
                             <select id="runtestcount" class="form-control">
-                                <option value="30">20 words</option>
-                                <option value="2" selected>30 words</option>
+                                <option value="20">20 words</option>
+                                <option value="30" selected>30 words</option>
                                 <option value="40">40 words</option>
                                 <option value="50">50 words</option>
-                                <option value="50">All</option>
+                                <option value="100">All</option>
                             </select>
                             <div class="input-group-append">
-                                <button id="runtest" class="btn">Start</button>
+                                <button id="runtest" class="btn btn-success">Start</button>
+
                             </div>
                         </div>
                     </form>
@@ -176,25 +144,27 @@
             </div>
         </div>
     </footer>
-
+    </div>
     <script>
         const log = require('electron-log');
-        log.info('[RENDERER] mainWindow.html');
+        log.debug('[MW] mainWindow.html');
         const electron = require('electron');
         const swal = require('sweetalert2');
         const say = require('say');
-
 
         var parseErrorsList = []; // store last parseErrors
 
         const {
             ipcRenderer
         } = electron;
+
+        // Buttons
         const runTestButton = document.querySelector('#runtest');
-        const enterDataButton = document.querySelector('#enterdata');
+        const editDataButton = document.querySelector('#editData');
         const runTestCountElement = document.querySelector('#runtestcount');
         const runTestTypeElement = document.querySelector('#runtesttype');
         const loadFileButton = document.querySelector('#loadFileButton');
+
         const fileInfoElement = document.querySelector('#fileInfoElement');
         const wordElement = document.querySelector('#vocabulary-word');
         const translationElement = document.querySelector('#vocabulary-translation');
@@ -209,39 +179,46 @@
         const form = document.querySelector('form');
 
         const testFormCloseElement = document.querySelector('#test-close');
-        const testCardElement = document.querySelector('#testCard');
         const testErrorElement = document.querySelector('#vocabulary-error');
         const testCorrectElement = document.querySelector('#vocabulary-correct');
         const testRemainingElement = document.querySelector('#vocabulary-remaining');
         const resultsElement = document.querySelector('#vocabulary-results');
-        const navigationCardsElement = document.querySelector('#navigationCards');
+
+        const testCardElement = document.querySelector('#testCard');
+        const navigationCardsElement = document.querySelector('#navigationsCards');
 
         function showTest() {
-            log.info('[RENDERER] show tests ..');
+            log.debug('[MW] show tests ..');
             navigationCardsElement.hidden = true;
             testCardElement.hidden = false;
+
             runTestButton.disabled = true;
-            //  errorCardElement.hidden = false;
-            //   parseErrorsElement.hidden = false;
+            editDataButton.disabled = true;
+            runTestTypeElement.disabled = true;
+            runTestCountElement.disabled = true;
+            loadFileButton.disabled = true;
+
         }
 
         function endTest() {
-            log.info('[RENDERER] hide tests ..');
+            log.debug('[MW] hide tests ..');
             testCardElement.hidden = true;
             navigationCardsElement.hidden = false;
-            //  errorCardElement.hidden = true;
-            //    parseErrorsElement.hidden = true;
+
             errorElement.innerHTML = '';
             runTestButton.disabled = false;
-
+            editDataButton.disabled = false;
+            runTestTypeElement.disabled = false;
+            runTestCountElement.disabled = false;
+            loadFileButton.disabled = false;
         }
 
 
         //  show file info
         ipcRenderer.on('test:fileInfo', function (e, vData) {
-            log.info('[RENDERER] test:fileInfo vData: %s', vData.hasError);
+            log.debug('[MW] test:fileInfo vData: %s', vData.hasError);
             //    log.info(vData.parseErrors);
-            log.debug('[RENDERER] test:fileName: %s / %s', vData.fileName, vData.fullPath);
+            log.debug('[MW] test:fileName: %s / %s', vData.fileName, vData.fullPath);
             fileInfoElement.innerHTML = "Vocabulary: " + vData.fileName + " (" + vData.size + ")";
             //vData.printInfo();
             // set main display fr file info
@@ -259,53 +236,65 @@
 
         //  show question
         ipcRenderer.on('test:display', function (e, testRun) {
-            log.info('[RENDERER] test:display');
-            log.info(testRun.currenEntry);
-            wordElement.innerHTML = testRun.currentEntry.word;
+            log.debug('[MW] test:display');
+            log.debug(testRun);
+            wordElement.innerHTML = testRun.currentEntry.ask;
             var remaining = testRun.targetCount - testRun.correct - testRun.error;
             testRemainingElement.innerHTML = remaining;
             testErrorElement.innerHTML = testRun.error;
             // reset class
             testCorrectElement.innerHTML = testRun.correct;
-            log.debug('[RENDERER] Display StatS : Remaining %s = Total %s - Correct %s - Error %s', remaining,
+            log.debug('[MW] Display StatS : Remaining %s = Total %s - Correct %s - Error %s', remaining,
                 testRun.total, testRun.correct, testRun.error);
-
+            translationElement.focus();
         });
 
         // show answer
         ipcRenderer.on('test:result', function (e, testRun) {
-            log.info('[RENDERER] test:result Got result %s', testRun);
-            var spanElement = document.createElement("h5");
+            var spanElement = document.createElement("div");
             if (testRun.answerIsCorrect) {
                 spanElement.innerHTML = "Richtig!";
-                spanElement.className = "animated bounce";
-                testCorrectElement.className += " animated wobble";
+                spanElement.className = "alert alert-success"; //role="alert"
+                // spanElement.className = "animated bounce";
+                // testCorrectElement.className += " animated wobble";
+                log.info('[MW] test:result OK');
+         
             } else {
-                spanElement.innerHTML = "Richtig wäre: " + testRun.correctTranslation;
-                spanElement.className = "animated rollIn";
-                testErrorElement.className += " animated bounce";
-                if (speechActiveCheckBox.checked) {
-                    say.speak(testRun.correctTranslation);
+                log.debug('[MW] ***** CORRECT IS %s', testRun.correctTranslations[0]);
+                var correctTranslationsText = "";
+                for (var ict = 0; ict < testRun.correctTranslations.length; ict++) {
+                    if (correctTranslationsText.length > 0) {
+                        correctTranslationsText += " / ";
+                    }
+                    correctTranslationsText += testRun.correctTranslations[ict];
                 }
+                spanElement.innerHTML = "Richtig wäre: " + correctTranslationsText;
+                spanElement.className = "alert alert-danger"; //role="alert"
+                if (testRun.type == "DE" && speechActiveCheckBox.checked) {
+                    say.speak(testRun.correctTranslations[0]); // there is always only one
+                }
+                log.info('[MW] test:result Wrong : %s', correctTranslationsText);
             }
             errorElement.appendChild(spanElement);
         });
 
         // show over
         ipcRenderer.on('test:over', function (e, testRun) {
-            log.info('[RENDERER] test:over Got result ');
+            log.info('[MW] test:over Got result ');
             endTest();
-            var successMessage = "You did a test with " + testRun.targetCount + " words , you made " + testRun.error +
-                " errors and " + testRun.correct + " were correct answers!";
+            var successMessage = "You did a test with <br/><span class='text-primary'>" + testRun.targetCount +
+                " words</span> , you made <br/><span class='text-danger'>" + testRun.error +
+                " errors</span> and <br/><span class='text-success'>" + testRun.correct +
+                " correct</span> answers!";
 
             if (testRun.grade < 2) {
-                swal("" + testRun.grade + " - Great job!", successMessage, "success");
+                swal("NOTE: " + testRun.grade + " - Great job!", successMessage, "success");
             } else if (testRun.grade < 3) {
-                swal("" + testRun.grade + " - Good job!", successMessage, "info");
+                swal("NOTE: " + testRun.grade + " - Good job!", successMessage, "info");
             } else if (testRun.grade < 4) {
-                swal("" + testRun.grade + " - Time to Improve!", successMessage, "warning");
+                swal("NOTE: " + testRun.grade + " - Time to Improve!", successMessage, "warning");
             } else {
-                swal("" + testRun.grade + " - Failed!", successMessage, "error");
+                swal("NOTE: " + testRun.grade + " - Failed!", successMessage, "error");
             }
             var liElement = document.createElement("li");
             liElement.innerHTML = "<h4>Grade " + testRun.grade + "</h4> (" + testRun.vData.fileName + ")<br/> " +
@@ -317,7 +306,7 @@
         testFormCloseElement.addEventListener('click', closeTestRun);
 
         function closeTestRun() {
-            log.info('[RENDERER] endTest');
+            log.debug('[MW] endTest');
             endTest();
         }
 
@@ -326,15 +315,15 @@
         showParseErrorsButton.addEventListener('click', closeForm);
 
         function closeForm() {
-            log.info('[RENDERER] parseErrors 2');
+            log.info('[MW] parseErrors 2');
             var errors = "";
             if (parseErrorsList && parseErrorsList.length > 0) {
                 errors = '<ul class="list-group">';
                 for (var i = 0; i < parseErrorsList.length; i++) {
                     var error = parseErrorsList[i];
                     if (error.spellingError) {
-                        errors += '<li class="list-group-item"><span class="text-danger">' + error.word +
-                            "</span> <br/>" +
+                        errors += '<li class="list-group-item">' + error.highlightedWord +
+                            " <br/>" +
                             "<small>" + error.error + "</small></li>";
                     } else {
                         errors += '<li class="list-group-item"><span class="text-danger">' + error.word +
@@ -363,7 +352,7 @@
             showTest();
         }
 
-        enterDataButton.addEventListener('click', showEdit);
+        editDataButton.addEventListener('click', showEdit);
 
         function showEdit(e) {
             ipcRenderer.send("data:showEdit");
@@ -374,10 +363,11 @@
 
 
             var check = {
-                word: wordElement.innerHTML,
-                translation: translationElement.value,
+                word_displayed: wordElement.innerHTML,
+                translation_entered: translationElement.value
+                //   correct_translations: "" // set in check function
             };
-            log.info('[RENDERER] Submitting %s/%s', check.word, check.translation);
+            log.info('[MW] Submitting %s/%s', check.word_displayed, check.translation_entered);
             ipcRenderer.send("test:answer", check);
 
             testErrorElement.className = "badge badge-danger right";
@@ -395,9 +385,8 @@
         }
 
         endTest();
-        log.info('[RENDERER] MainWindow::ready to rumble...');
         ipcRenderer.send("program:ready");
-        log.info('[RENDERER] #### MainWindow::JS done ...');
+        log.info('[MW] MainWindow Loaded, JS done ...');
     </script>
 </body>
 

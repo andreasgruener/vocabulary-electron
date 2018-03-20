@@ -6,8 +6,8 @@
   "scripts": {
     "start": "export ELECTRON_ENABLE_LOGGING=true; electron .",
     "package-mac": "electron-packager . --overwrite --platform=darwin --arch=x64 --icon=assets/icons/mac/icon.icns --prune=true --out=release-builds",
-    "package-win": "electron-packager . electron-tutorial-app --overwrite --asar=true --platform=win32 --arch=ia32 --icon=assets/icons/win/icon.ico --prune=true --out=release-builds --version-string.CompanyName=CE --version-string.FileDescription=CE --version-string.ProductName=\"Vocabulary\"",
-    "package-linux": "electron-packager . electron-tutorial-app --overwrite --asar=true --platform=linux --arch=x64 --icon=assets/icons/png/icon.png --prune=true --out=release-builds"
+    "package-win": "electron-packager . vocabulary --overwrite --asar=true --platform=win32 --arch=ia32 --icon=assets/icons/win/icon.ico --prune=true --out=release-builds --version-string.CompanyName=CE --version-string.FileDescription=CE --version-string.ProductName=\"Vocabulary\"",
+    "package-linux": "electron-packager . vocabulary --overwrite --asar=true --platform=linux --arch=x64 --icon=assets/icons/png/icon.png --prune=true --out=release-builds"
   },
   "author": "Andreas",
   "license": "MIT",
@@ -24,6 +24,7 @@
     "say": "^0.14.0",
     "spellchecker": "^3.4.4",
     "sweetalert2": "^7.12.15",
+    "tags-input": "^1.1.1",
     "username": "^3.0.0"
   },
   "devDependencies": {
