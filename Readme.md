@@ -8,17 +8,19 @@ Overall install information.
 
 ### Install Node.js
 
-<https://nodejs.org/e>
+<https://nodejs.org/>
+
 
 #### Mac & Homebrew
 
 brew install node
 
 ### Install Node Modules
-
+```bash
 $ npm install electron
 $ npm install electron-packager
 $ npm run package-mac
+```
 
 ### Configure Language
 
