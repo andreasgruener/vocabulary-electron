@@ -16,6 +16,7 @@ Overall install information.
 brew install node
 
 ### Install Node Modules
+
 ```bash
 $ npm install electron
 $ npm install electron-packager
