@@ -72,10 +72,12 @@ var VocabularyTest = {
         log.debug("");
         log.debug("[VT] ### For type: %s", this.type);
         log.debug("[VT] Next Vocabulary %s : %s ", this.currentIndex, this.targetCount);
-        log.info("[VT] vocabulary check remaining entries: %s total: %s target: %s (multiple translations per entry)",  this.remainingIndices.length, this.total, this.targetCount);
-
+        
+        var answered = this.wrongAnswers.length + this.correctAnswers.length;
+        log.info("[VT] Check 4 More :: ( answered: %s >=  total: %s )  OR ( %s <= 0 ) :: target: %s (multiple translations per entry)",  answered, this.targetCount, this.remainingIndices.length, this.targetCount );
+       
         if (this.remainingIndices.length <= 0 ||  
-            (this.total - this.remainingIndices.length) >= this.targetCount) {
+            answered >= this.targetCount) {
             log.warn("[VT] all vocabualry asked %s - %s of %s", this.total, this.remainingIndices.length, this.targetCount);
             over = true;
             this.targetCount = this.wrongAnswers.length + this.correctAnswers.length;
