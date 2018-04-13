@@ -12,8 +12,9 @@ Overall install information.
 
 
 #### Mac & Homebrew
-
+```
 brew install node
+```
 
 ### Install Node Modules
 
@@ -25,5 +26,12 @@ $ npm run package-mac
 
 ### Configure Language
 
-```export LANG=en_US.UTF-8
-export LANG=en_GB.UTF-8```
+```
+export LANG=en_US.UTF-8
+export LANG=en_GB.UTF-8
+```
+
+### Build
+```
+$ npm run package-<mac|windows|linux>
+```
