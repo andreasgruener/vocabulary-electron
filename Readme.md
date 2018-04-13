@@ -12,6 +12,7 @@ Overall install information.
 
 
 #### Mac & Homebrew
+
 ```
 brew install node
 ```
@@ -32,6 +33,7 @@ export LANG=en_GB.UTF-8
 ```
 
 ### Build
+
 ```
 $ npm run package-<mac|windows|linux>
 ```
