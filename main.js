@@ -1,7 +1,7 @@
 const electron = require('electron');
 const url = require('url');
 const path = require('path');
-const Store = require('./store.js');
+const Store = require('./Store.js');
 const log = require('electron-log');
 
 log.transports.console.level = 'info';
