@@ -17,12 +17,21 @@ Overall install information.
 brew install node
 ```
 
+#### Linux
+
+```
+curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
+sudo apt-get install -y nodejs
+sudo apt-get install nodejs
+sudo apt-get install npm
+```
+
 ### Install Node Modules
 
 ```bash
 $ npm install electron
 $ npm install electron-packager
-$ npm run package-mac
+$ npm install
 ```
 
 ### Configure Language
@@ -36,4 +45,16 @@ export LANG=en_GB.UTF-8
 
 ```
 $ npm run package-<mac|windows|linux>
+```
+#### Trouble Shooting
+Spell Checker is a native module, so it might fail to build on linux with a error such as:
+````
+NODE_MODULE_VERSION 59. This version of Node.js requires
+NODE_MODULE_VERSION 57. Please try re-compiling or re-installing
+
+```
+Solution, rebuild everything native (spell checker) on your system:
+```
+npm install electron-rebuild
+./node_modules/.bin/electron-rebuild
 ```

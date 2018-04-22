@@ -109,7 +109,7 @@ app.on('ready', function () {
     log.info('Dear %s, yeah. I am ready!', currentUser);
     // loadLastFile();
 
-    // mqtt.publish(testRunData);
+   // mqtt.publish(testRunData);
 });
 
 function nextVocabulary() {
@@ -125,6 +125,7 @@ function nextVocabulary() {
         log.debug(testRun);
         testRun.user = currentUser;
         mail.sendMail(testRun);
+        mqtt.publish(testRun);
         log.debug("MAIL SEND -- Test over");
         mainWindow.webContents.send("test:over", testRun);
         return false;

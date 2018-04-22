@@ -21,6 +21,7 @@ var VocabularyTest = {
     askedMultitranslations: [],
 
     grade: 0,
+    fileName : 'unknown',
 
     type: "N/A", // DE or EN
     started: "",
