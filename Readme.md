@@ -26,6 +26,11 @@ sudo apt-get install nodejs
 sudo apt-get install npm
 ```
 
+### build and deploy binary ###
+```
+git pull; npm run package-linux; cp -R release-builds/vocabulary-linux-x64 ~/bin/
+```
+
 ### Install Node Modules
 
 ```bash
