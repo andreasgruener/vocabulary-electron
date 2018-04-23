@@ -6,3 +6,4 @@ npm-debug.log
 .DS_Store
 Settings.js
 assets/icons/**
+package-lock-json
