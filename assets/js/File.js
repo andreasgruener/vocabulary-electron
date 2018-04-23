@@ -85,9 +85,9 @@ function parseCSV(fileName) {
             activeVocabulary = result.voc;
 
             const file = path.parse(fileName).name + path.parse(fileName).ext;
-            result['fileName'] = fileName;
-            result['file'] = file;
-            result['size'] = activeVocabulary.length;
+            result.fileName = fileName;
+            result.file = file;
+            result.size = activeVocabulary.length;
 
             log.info("****** Parsed End");
             fileLoaded(result)
