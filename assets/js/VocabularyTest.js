@@ -22,8 +22,10 @@ var VocabularyTest = {
 
     grade: 0,
     fileName : 'unknown',
+    fullPath : 'unknown',
+    language : "english",
 
-    type: "N/A", // DE or EN
+    type: "NA", // DE or EN
     started: "",
     finished: "",
     duration: 0, // in seconds
@@ -68,6 +70,10 @@ var VocabularyTest = {
         this.total = vd.size;
         this.fileName = vd.fileName;
         this.fullPath = vd.fullPath;
+        this.language = "english";
+        if ( this.fullPath.indexOf("latein") > 0 || this.fullPath.indexOf("latin") > 0  ) {
+            this.language = "latein";
+        }
     },
     next: function () {
         log.debug("");
@@ -173,6 +179,7 @@ var VocabularyTest = {
     calcGrade: function () {
         this.finished = new Date();
         this.duration = this.finished.getSeconds() - this.started.getSeconds();
+        log.info("[VT] START "+ this.started + " -- " + this.finished);
         var percent = (this.error / this.currentCount) * 100
         var gradePercent = percent * 10
         var factor = Math.floor(gradePercent / 75);
