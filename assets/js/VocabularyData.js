@@ -4,7 +4,6 @@ const path = require('path');
 const parse = require('csv-parse');
 SpellChecker = require('spellchecker');
 
-log.transports.console.level = 'info';
 
 var VocabularyData = {
 

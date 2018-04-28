@@ -1,5 +1,7 @@
 const log = require('electron-log');
 
+log.transports.console.level = 'info';
+
 var VocabularyTest = {
 
     currentEntry: {}, // word translation
@@ -12,6 +14,11 @@ var VocabularyTest = {
     total: 0,
     correct: 0,
     targetCount: 0,
+  //  wrongCount: 0, // number of questions asked in wrong run
+    wrongIndex: [],
+    currentWrongIndex: 0,
+    wrongRunRequired: false, // set to true with first error
+    rerun: false, // set to true with last question asked and wrong answers before
 
     questions: [],
     wrongAnswers: [],
@@ -21,15 +28,16 @@ var VocabularyTest = {
     askedMultitranslations: [],
 
     grade: 0,
-    fileName : 'unknown',
-    fullPath : 'unknown',
-    language : "english",
+    fileName: 'unknown',
+    fullPath: 'unknown',
+    language: "english",
 
     type: "NA", // DE or EN
     started: "",
     finished: "",
     duration: 0, // in seconds
     over: false,
+
     vData: {},
     user: "Unknown",
 
@@ -53,6 +61,12 @@ var VocabularyTest = {
         this.started = "";
         this.finished = "";
         this.over = false;
+       // this.wrongCount = 0; // number of questions asked in wrong run
+        this.wrongIndex = [];
+        this.currentWrongIndex = 0;
+        this.wrongRunRequired = false; // set to true with first error
+        this.rerun = false; // set to true with last question asked and wrong answers before
+        log.info("[VT] RESET DATA");
     },
 
     start: function (c, t) {
@@ -71,23 +85,76 @@ var VocabularyTest = {
         this.fileName = vd.fileName;
         this.fullPath = vd.fullPath;
         this.language = "english";
-        if ( this.fullPath.indexOf("latein") > 0 || this.fullPath.indexOf("latin") > 0  ) {
+        if (this.fullPath.indexOf("latein") > 0 || this.fullPath.indexOf("latin") > 0) {
             this.language = "latein";
         }
+    },
+    nextRerun: function () {
+        log.info("######################## WRONG = %s", this.wrongIndex.length);
+        for (var c = 0; c < this.wrongIndex.length; c++) {
+
+            log.info("# Entry Index=%s RealIndex=%s word=%s" + c, this.wrongIndex[c], this.vData.data[this.wrongIndex[c]].word);
+        }
+        log.info("[VT] RERUN ### CHECK: %s >= %s", this.currentWrongIndex, this.wrongIndex.length);
+        if (this.currentWrongIndex >= this.wrongIndex.length) {
+            return;
+        }
+        log.info("");
+        log.info("[VT] RERUN ### For type: %s", this.type);
+        log.info("[VT] RERUN Next Vocabulary %s : %s ", this.currentWrongIndex, this.wrongIndex.length);
+
+        var answered = this.wrongAnswers.length + this.correctAnswers.length;
+        log.info("[VT] RERUN Check 4 More :: ( answered: %s >=  total: %s )  OR ( %s <= 0 ) :: target: %s (multiple translations per entry)", answered, this.targetCount, this.remainingIndices.length, this.targetCount);
+
+        this.currentIndex = this.wrongIndex[this.currentWrongIndex];
+
+        var entry = this.vData.data[this.currentIndex];
+        var multiTransCount = entry.translations.length;
+
+
+
+        log.info("########################");
+        //  log.info(entry.translations);
+        log.info("Size %s and type %s", multiTransCount, this.type);
+
+        if (this.type == "EN") {
+            entry.ask = entry.word;
+        } else {
+            if (multiTransCount > 1) { // multiple translation to ask
+                var randomMulti = Math.floor(Math.random() * Math.floor(multiTransCount - 1));
+                entry.ask = entry.translations[randomMulti];
+            } else {
+                entry.ask = entry.translation;
+            }
+        }
+
+        log.info("- 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 *+")
+        log.info(this.remainingIndices);
+        log.info(this.askedMultitranslations);
+        log.info("- 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 *+")
+
+        log.info("[VT] RERUN ***** vocabualry asked  index=%s currentWrongIndex=%s )", this.currentIndex, this.currentWrongIndex);
+        //log.debug(this.remainingIndices);
+
+        this.currentWrongIndex++;
+        this.currentEntry = entry;
+        log.debug("[VT] Next Vocabulary %s : %s ", entry.ask, entry.translation);
+        return entry;
     },
     next: function () {
         log.debug("");
         log.debug("[VT] ### For type: %s", this.type);
         log.debug("[VT] Next Vocabulary %s : %s ", this.currentIndex, this.targetCount);
-        
+
         var answered = this.wrongAnswers.length + this.correctAnswers.length;
-        log.info("[VT] Check 4 More :: ( answered: %s >=  total: %s )  OR ( %s <= 0 ) :: target: %s (multiple translations per entry)",  answered, this.targetCount, this.remainingIndices.length, this.targetCount );
-       
+        log.info("[VT] Check for more :: ( answered: %s >=  total: %s )  OR ( %s <= 0 ) :: target: %s (multiple translations per entry)", answered, this.targetCount, this.remainingIndices.length, this.targetCount);
+
         if (this.remainingIndices.length <= 0 ||  
             answered >= this.targetCount) {
             log.warn("[VT] all vocabualry asked %s - %s of %s", this.total, this.remainingIndices.length, this.targetCount);
             over = true;
             this.targetCount = this.wrongAnswers.length + this.correctAnswers.length;
+            this.rerun = this.wrongRunRequired; // set the if required the rerun mode
             return;
         }
         var random = Math.floor(Math.random() * Math.floor(this.remainingIndices.length));
@@ -96,7 +163,7 @@ var VocabularyTest = {
         var entry = this.vData.data[this.currentIndex];
         var multiTransCount = entry.translations.length;
         var exitingMultitrans = this.askedMultitranslations[this.currentIndex];
-        log.debug(entry.translations);
+        //   log.debug(entry.translations);
         log.debug("Size %s and type %s", multiTransCount, this.type);
         if (this.type == "EN") {
             entry.ask = entry.word;
@@ -105,10 +172,10 @@ var VocabularyTest = {
 
 
             if (multiTransCount > 1) { // multiple translation to ask
-              
+
                 var askedMultiTrans = exitingMultitrans;
                 var randomMulti = Math.floor(Math.random() * Math.floor(multiTransCount - 1));
-             
+
                 // check if got this before
                 if (askedMultiTrans) { // second++ time this entry
                     randomMulti = Math.floor(Math.random() * Math.floor(askedMultiTrans.length - 1));
@@ -118,7 +185,7 @@ var VocabularyTest = {
                     if (askedMultiTrans.length < 1) {
                         this.remainingIndices.splice(random, 1);
                     }
-                  
+
                     log.debug(randomMulti);
                 } else {
                     askedMultiTrans = [];
@@ -130,7 +197,7 @@ var VocabularyTest = {
                     entry.ask = entry.translations[randomMulti];
                     log.debug(askedMultiTrans);
                 }
-               
+
                 this.askedMultitranslations[this.currentIndex] = askedMultiTrans;
             } else {
                 entry.ask = entry.translation;
@@ -143,7 +210,7 @@ var VocabularyTest = {
         log.debug(this.remainingIndices);
         log.debug(this.askedMultitranslations);
         log.debug("- 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 *+")
-        
+
         log.debug("[VT] ***** vocabualry asked random=%s, index=%s (%s of %s)", random, this.currentIndex, this.remainingIndices.length, this.targetCount);
         //log.debug(this.remainingIndices);
 
@@ -155,7 +222,8 @@ var VocabularyTest = {
     },
     check: function (check) {
         this.currentCount++;
-        var askedEntry = {};
+        // var askedEntry = {};
+
         if (this.type == "EN") {
             check.correct_translations = this.currentEntry.translations;
         } else {
@@ -170,16 +238,20 @@ var VocabularyTest = {
         } else {
             this.error++;
             this.answerIsCorrect = false;
-            this.wrongAnswers.push(check);
-            this.correctTranslations = check.correct_translations;
+            if (!this.rerun) {
+                this.wrongAnswers.push(check);
+                this.wrongIndex.push(this.currentIndex); // remember the index asked
+                this.correctTranslations = check.correct_translations;
+            }
             log.debug("[VT] WRONG %s", this.correctTranslations);
+            this.wrongRunRequired = true; // need to ask the wrong answered questions at the end
         }
         return this.answerIsCorrect;
     },
     calcGrade: function () {
         this.finished = new Date();
         this.duration = this.finished.getSeconds() - this.started.getSeconds();
-        log.info("[VT] START "+ this.started + " -- " + this.finished);
+        log.info("[VT] START " + this.started + " -- " + this.finished);
         var percent = (this.error / this.currentCount) * 100
         var gradePercent = percent * 10
         var factor = Math.floor(gradePercent / 75);
@@ -190,6 +262,7 @@ var VocabularyTest = {
             tgrade = 6;
         }
         this.grade = tgrade;
+
         return this.grade;
     }
 

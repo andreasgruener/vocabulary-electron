@@ -4,7 +4,6 @@ const path = require('path');
 const Store = require('./Store.js');
 const log = require('electron-log');
 
-log.transports.console.level = 'info';
 
 
 const username = require('username');
@@ -109,28 +108,41 @@ app.on('ready', function () {
     log.info('Dear %s, yeah. I am ready!', currentUser);
     // loadLastFile();
 
-   // mqtt.publish(testRunData);
+    // mqtt.publish(testRunData);
 });
 
 function nextVocabulary() {
-    log.debug("Next vocabulary");
     var entry = testRun.next();
+    log.info("[MAIN] Next vocabulary ");
+    if (testRun.rerun) {
+        log.info("[MAIN] RERUN You got wrong answers");
+        entry = testRun.nextRerun();
+    }
+
     if (entry) {
-        mainWindow.webContents.send("test:display", testRun);
-        log.debug("Test Display");
+        log.info("[MAIN] Entry");
+        if (testRun.rerun && testRun.currentWrongIndex == 1) {  // display info the first entry if rerun
+            log.info("[MAIN] RERUN INFO");
+            mainWindow.send("test:showWrongAnswers", testRun); // calls display after dismissal
+        } else {
+            mainWindow.webContents.send("test:display", testRun);
+        }
+        log.info("[MAIN] Test Display");
         return true;
     } else {
-        log.debug("Test over");
+        log.info("[MAIN] Test over");
         testRun.calcGrade();
         log.debug(testRun);
         testRun.user = currentUser;
         mail.sendMail(testRun);
         mqtt.publish(testRun);
-        log.debug("MAIL SEND -- Test over");
+        log.debug("[MAIN] MAIL SEND -- Test over");
         mainWindow.webContents.send("test:over", testRun);
         return false;
+
     }
 }
+
 
 // Show Edit Window
 ipcMain.on('data:close', function (e) {
@@ -157,7 +169,7 @@ ipcMain.on('data:save', function (e, vDataSave) {
 
 // First Vocabulary
 ipcMain.on('test:run', function (e, count, type) {
-    log.debug("[MAIN] test:run cnt=%s type=%s", count, type);
+    log.info("[MAIN] *** test:run cnt=%s type=%s", count, type);
     targetCount = count;
     testRun.start(targetCount, type);
     nextVocabulary();
