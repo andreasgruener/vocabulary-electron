@@ -20,7 +20,7 @@ brew install node
 #### Linux
 
 ```
-curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
+curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -git
 sudo apt-get install -y nodejs
 sudo apt-get install nodejs
 sudo apt-get install npm
@@ -45,6 +45,7 @@ $ npm install
 export LANG=en_US.UTF-8
 export LANG=en_GB.UTF-8
 ```
+
 
 ### Build
 
