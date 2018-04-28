@@ -28,7 +28,7 @@ function publishInternal(testRunData) {
         testRunData.grade;
 
    
-    client = mqtt.connect('mqtt://mqtt.local');
+    client = mqtt.connect(Settings.MQTT_SERVER);
 
     client.on('connect', function () {
         log.info("Publishing Grade " + testRunData.grade + " on " + topic);
