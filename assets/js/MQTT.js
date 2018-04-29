@@ -26,7 +26,7 @@ function publishInternal(testRunData) {
         testRunData.error +  "/" +
         testRunData.duration +  "/" +
         testRunData.grade;
-    var server = Settings.MQTT_SERVER;
+    var server = "mqtt://10.0.2.2"; // Settings.MQTT_SERVER;
    
    
     log.info("Connecting to " + server);

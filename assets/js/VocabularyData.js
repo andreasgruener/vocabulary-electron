@@ -237,8 +237,10 @@ var VocabularyData = {
                 this.hasError = true;
                 //     log.debug("[VD] PS: has errors %s", this.parseErrors.length);
             }
-            if (!entry.phase) {
+            if (!data[i].phase) {
                 entry.phase = 0;
+            } else {
+                entry.phase = data[i].phase;
             }
             if (!entry.lastAsked) {
                 entry.lastAsked = "";
