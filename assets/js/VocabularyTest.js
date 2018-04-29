@@ -1,6 +1,7 @@
 const log = require('electron-log');
+const ENGLISH = "english";
+const LATEIN = "latein";
 
-log.transports.console.level = 'info';
 
 var VocabularyTest = {
 
@@ -14,11 +15,12 @@ var VocabularyTest = {
     total: 0,
     correct: 0,
     targetCount: 0,
-  //  wrongCount: 0, // number of questions asked in wrong run
+    //  wrongCount: 0, // number of questions asked in wrong run
     wrongIndex: [],
     currentWrongIndex: 0,
     wrongRunRequired: false, // set to true with first error
     rerun: false, // set to true with last question asked and wrong answers before
+
 
     questions: [],
     wrongAnswers: [],
@@ -61,7 +63,7 @@ var VocabularyTest = {
         this.started = "";
         this.finished = "";
         this.over = false;
-       // this.wrongCount = 0; // number of questions asked in wrong run
+        // this.wrongCount = 0; // number of questions asked in wrong run
         this.wrongIndex = [];
         this.currentWrongIndex = 0;
         this.wrongRunRequired = false; // set to true with first error
@@ -72,8 +74,12 @@ var VocabularyTest = {
     start: function (c, t) {
         log.debug("[VT rest count=%s type=%s", c, t)
         this.reset();
-        for (var i = 0; i < this.total; i++) {
-            this.remainingIndices.push(i);
+        // for (var i = 0; i < this.total; i++) {
+        //     this.remainingIndices.push(i);
+        // }
+        for (var i = 0; i < this.vData.phaseRelevant; i++) {
+            this.remainingIndices.push(this.vData.phaseIndices[i]);
+            log.info("[VT] P " + this.vData.data[this.vData.phaseIndices[i]].phase);
         }
         this.targetCount = c;
         this.type = t;
@@ -140,6 +146,9 @@ var VocabularyTest = {
         this.currentEntry = entry;
         log.debug("[VT] Next Vocabulary %s : %s ", entry.ask, entry.translation);
         return entry;
+    },
+    nextPhaseEntry: function () {
+
     },
     next: function () {
         log.debug("");
@@ -220,6 +229,15 @@ var VocabularyTest = {
         log.debug("[VT] Next Vocabulary %s : %s ", entry.ask, entry.translation);
         return entry;
     },
+    today: function () {
+        var d = new Date();
+
+        //d.setHours(d.getHours() + d.getTimezoneOffset() / 60);
+        dateString = d.getFullYear() + "-" +
+            ("0" + (d.getMonth() + 1)).slice(-2) + "-" +
+            ("0" + d.getDate()).slice(-2);
+        return dateString;
+    },
     check: function (check) {
         this.currentCount++;
         // var askedEntry = {};
@@ -229,15 +247,36 @@ var VocabularyTest = {
         } else {
             check.correct_translations = [this.currentEntry.word];
         }
+
         log.debug("[VT] To check %s / %s --> correct: %s ( %s/%s )", check.word_displayed, check.translation_entered, check.correct_translation, this.currentEntry.word, this.currentEntry.translation);
         if (check.correct_translations.includes(check.translation_entered)) {
             this.correct++;
             this.answerIsCorrect = true;
+
+            // phase handling
+            if (!this.rerun) {
+                this.currentEntry.phase = parseInt(this.currentEntry.phase) + 1;
+                this.currentEntry.lastAsked = this.today();
+                check.phase = this.currentEntry.phase;
+                log.info("[VT] P increasing phase %s and setting new date ", this.currentEntry.phase, this.currentEntry.lastAsked);
+            } else {
+                log.info("[VT] P NOT increasing phase due to error before");
+            }
+
+
             this.correctAnswers.push(check);
             log.debug("[VT] CORRECT " + this.correctAnswer);
         } else {
             this.error++;
             this.answerIsCorrect = false;
+
+            // phase handling
+            if (this.currentEntry.phase > 0) {
+                this.currentEntry.phase = parseInt(this.currentEntry.phase) - 1;
+            }
+            this.currentEntry.lastAsked = this.today();
+            check.phase = this.currentEntry.phase;
+
             if (!this.rerun) {
                 this.wrongAnswers.push(check);
                 this.wrongIndex.push(this.currentIndex); // remember the index asked
@@ -245,6 +284,9 @@ var VocabularyTest = {
             }
             log.debug("[VT] WRONG %s", this.correctTranslations);
             this.wrongRunRequired = true; // need to ask the wrong answered questions at the end
+
+
+            log.info("[VT] P decreasing phase %s and setting new date ", this.currentEntry.phase, this.currentEntry.lastAsked);
         }
         return this.answerIsCorrect;
     },

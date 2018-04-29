@@ -86,18 +86,18 @@ function getInfoMail(testData) {
 
 function getInfoMailHTML(testData) {
 
-	var falscheFragenTextHTML = "<table><tr><th>Frage</th><th>Antwort</th><th>Richtige Antwort</th></tr>";
+	var falscheFragenTextHTML = "<table><tr><th>Phase</th><th>Frage</th><th>Antwort</th><th>Richtige Antwort</th></tr>";
 	for ( var i in testData.wrongAnswers ) {
 		var entry = testData.wrongAnswers[i];
-		falscheFragenTextHTML += "<tr><td>" +entry.word_displayed + "</td><td>" + entry.translation_entered +  "</td><td>" + entry.correct_translations + "</td></tr>";
+		falscheFragenTextHTML += "<tr><td>" +entry.phase + "</td><td>"+entry.word_displayed + "</td><td>" + entry.translation_entered +  "</td><td>" + entry.correct_translations + "</td></tr>";
 
 	}
 	falscheFragenTextHTML += "</table>";
 	
-	var richtigeFragenTextHTML = "<table><tr><th>Frage</th><th>Antwort</th><th>Richtige Antwort</th></tr>";
+	var richtigeFragenTextHTML = "<table><tr><th>Phase</th><th>Frage</th><th>Antwort</th><th>Richtige Antwort</th></tr>";
 	for ( var i in testData.correctAnswers ) {
 		var entry = testData.correctAnswers[i];
-		richtigeFragenTextHTML += "<tr><td>" +entry.word_displayed + "</td><td>" + entry.translation_entered +  "</td><td>" + entry.correct_translations + "</td></tr>";
+		richtigeFragenTextHTML += "<tr><td>" +entry.phase + "</td><td>"+entry.word_displayed + "</td><td>" + entry.translation_entered +  "</td><td>" + entry.correct_translations + "</td></tr>";
 
 	}
 	richtigeFragenTextHTML += "</table>";

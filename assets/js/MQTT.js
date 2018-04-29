@@ -26,12 +26,13 @@ function publishInternal(testRunData) {
         testRunData.error +  "/" +
         testRunData.duration +  "/" +
         testRunData.grade;
-
+    var server = Settings.MQTT_SERVER;
    
-    client = mqtt.connect(Settings.MQTT_SERVER);
-
+   
+    log.info("Connecting to " + server);
+    client = mqtt.connect(server);
     client.on('connect', function () {
-        log.info("Publishing Grade " + testRunData.grade + " on " + topic);
+        log.info("Publishing Grade " + testRunData.grade + " on " + topic + "@" + this.server);
         client.publish(topic, "" + testRunData.grade);
         client.end();
         

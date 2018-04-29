@@ -73,7 +73,7 @@ function parseCSV(fileName) {
         parse(data, {
             delimiter: ';',
             relax_column_count: true,
-            columns: ['word', 'translation', 'genus']
+            columns: ['word', 'translation', 'phase','lastAsked']
         }, function (err, output) {
             //  log.info("****** Parsed Start:")
             //  log.info(err);
@@ -122,22 +122,22 @@ function specialParse(data) {
         else {
             log.info("Translation is missing for %s", word);
             translation = "MISSING";
-            parseError['word'] = word;
-            parseError['error'] = "Missing Translation, no semicolon"
-            parseError['raw'] = data[i].word;
-            parseError['row'] = i;
+            parseError.word = word;
+            parseError.error = "Missing Translation, no semicolon"
+            parseError.raw = data[i].word;
+            parseError.row = i;
 
             parseProblems.push(parseError);
         }
-        entry['word'] = word;
-        entry['translation'] = translation;
+        entry.word = word;
+        entry.translation = translation;
         //     log.info(entry);
         vocs.push(entry);
     }
     // log.info('**************');
     //   log.info(vocs);
-    result['voc'] = vocs;
-    result['parseErrors'] = parseProblems;
+    result.voc = vocs;
+    result.parseErrors = parseProblems;
     return result;
 }
 

@@ -29,6 +29,11 @@
                 <div class="card">
                     <div class="card-header">
                         <div class="row">
+                            <div class="p-2 bd-highlight">
+                                <h1>
+                                    <span id="vocabulary-phase" class="badge badge-pill badge-info" data-badge-caption="Phase">4</span>
+                                </h1>
+                            </div>
                             <div class="mr-auto p-2">
                                 <h2 id="vocabulary-word">No Data</h2>
                             </div>
@@ -44,6 +49,7 @@
                             <div class="p-2 bd-highlight">
                                 <span id="vocabulary-remaining" class="badge badge-info" data-badge-caption="Remaining">Remaining 4</span>
                             </div>
+
                             <div class="p-2 bd-highlight">
                                 <button id="test-close" type="button" class="close" aria-label="Close">
                                     <span aria-hidden="true">&times;</span>
@@ -116,7 +122,7 @@
                     <div class="form-check">
                         <input type="checkbox" class="form-check-input" id="speechActive">
                         <label class="form-check-label" for="exampleCheck1">Speech</label>
-                        <i>(Version: 28.04.2018)</i>
+                        <i>(Version: 28.04.2018-MQTT)</i>
                     </div>
                     <form onsubmit="return false">
                         <div class="input-group">
@@ -183,6 +189,7 @@
         const form = document.querySelector('form');
 
         const testFormCloseElement = document.querySelector('#test-close');
+        const phaseElement = document.querySelector('#vocabulary-phase');
         const testErrorElement = document.querySelector('#vocabulary-error');
         const testCorrectElement = document.querySelector('#vocabulary-correct');
         const testRerunElement = document.querySelector('#vocabulary-rerun');
@@ -226,11 +233,12 @@
             wordElement.className = "animated fadeInLeft";
             var remaining = testRun.targetCount - testRun.correct - testRun.error;
             testRemainingElement.innerHTML = remaining;
+            phaseElement.innerHTML = testRun.currentEntry.phase;
             testErrorElement.innerHTML = testRun.error;
             if (testRun.rerun) {
                 testRerunElement.hidden = false;
-                testRerunElement.innerHTML = "Rerun" 
-                testRemainingElement.innerHTML = ( testRun.wrongIndex.length + 1 - testRun.currentWrongIndex);
+                testRerunElement.innerHTML = "Rerun"
+                testRemainingElement.innerHTML = (testRun.wrongIndex.length + 1 - testRun.currentWrongIndex);
             }
             // reset class
             testCorrectElement.innerHTML = testRun.correct;
@@ -271,8 +279,8 @@
             if (testRun.answerIsCorrect) {
                 spanElement.innerHTML = "Richtig!";
                 spanElement.className = "alert alert-success"; //role="alert"
-              //  spanElement.className = "alert alert-success animated bounce";
-           //     testCorrectElement.className += " animated wobble";
+                //  spanElement.className = "alert alert-success animated bounce";
+                //     testCorrectElement.className += " animated wobble";
                 log.info('[MW] test:result OK');
 
             } else {
@@ -284,7 +292,8 @@
                     }
                     correctTranslationsText += testRun.correctTranslations[ict];
                 }
-                spanElement.innerHTML = ( testRun.type == "DE" ? testRun.currentEntry.translation : testRun.currentEntry.word )  + " --> correct answer is: " + correctTranslationsText;
+                spanElement.innerHTML = (testRun.type == "DE" ? testRun.currentEntry.translation : testRun.currentEntry
+                    .word) + " --> correct answer is: " + correctTranslationsText;
                 spanElement.className = "alert alert-danger"; //role="alert"
                 if (testRun.type == "DE" && speechActiveCheckBox.checked) {
                     say.speak(testRun.correctTranslations[0]); // there is always only one
@@ -324,13 +333,13 @@
             var successMessage = "You made <br/><span class='text-danger'>" + testRun.error +
                 " errors</span>!<br/><br/>You will be asked the wrong words again.";
 
-          
-                swal("Wrong answers - Rerun required!", successMessage, "success").then((result) => {
-                    log.debug('[MW] Callback SWAL2');
-                    errorElement.innerHTML = "";
-                    displayQuestion(testRun);
-                });
-          
+
+            swal("Wrong answers - Rerun required!", successMessage, "success").then((result) => {
+                log.debug('[MW] Callback SWAL2');
+                errorElement.innerHTML = "";
+                displayQuestion(testRun);
+            });
+
             var liElement = document.createElement("li");
             liElement.innerHTML = "<h4>Grade " + testRun.grade + "</h4> (" + testRun.vData.fileName + ")<br/> " +
                 successMessage;
@@ -421,6 +430,32 @@
         }
 
         endTest();
+        // swal({
+        //     title: 'Welcome!',
+        //     text: "Choose your language!",
+        //     type: 'info',
+        //     showCancelButton: true,
+        //     confirmButtonColor: '#3085d6',
+        //     cancelButtonColor: '#d33',
+        //     confirmButtonText: 'English',
+        //     cancelButtonText: 'Latein',
+        //     confirmButtonClass: 'btn btn-success',
+        //     cancelButtonClass: 'btn btn-info',
+        //     buttonsStyling: false,
+        //     reverseButtons: true
+        // }).then((result) => {
+        //     const ENGLISH = "english";
+        //     const LATEIN = "latein";
+        //     if (result.value) {
+        //         log.info("Picked ENGLISH");
+        //         ipcRenderer.send("test:language", ENGLISH);
+        //     } else if (result.dismiss === swal.DismissReason.cancel) {
+        //         log.info("Picked LATIN");
+        //         ipcRenderer.send("test:language", LATEIN);
+        //     }
+        // })
+
+
         ipcRenderer.send("program:ready");
         log.info('[MW] MainWindow Loaded, JS done ...');
     </script>

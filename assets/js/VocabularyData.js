@@ -4,12 +4,16 @@ const path = require('path');
 const parse = require('csv-parse');
 SpellChecker = require('spellchecker');
 
+log.transports.console.level = 'info';
 
 var VocabularyData = {
 
     fileName: "N/A",
     fullPath: "N/A",
     data: [],
+    // phase based questions
+    phaseIndices: [],
+    phaseRelevant: 0,
     parseErrors: [],
     hasError: false,
     size: 0,
@@ -62,13 +66,63 @@ var VocabularyData = {
         });
 
     },
+    daysDiff: function (date1, date2) {
+
+        //Get 1 day in milliseconds
+        var one_day = 1000 * 60 * 60 * 24;
+
+        // Convert both dates to milliseconds
+        var date1_ms = date1.getTime();
+        var date2_ms = date2.getTime();
+
+        // Calculate the difference in milliseconds
+        var difference_ms = date2_ms - date1_ms;
+
+        // Convert back to days and return
+        return Math.round(difference_ms / one_day);
+
+    },
+    initPhase: function () {
+        // empty current entry https://stackoverflow.com/questions/1232040/how-do-i-empty-an-array-in-javascript
+        this.phaseIndices.length = 0;
+        // determine which entries are ready to be asked
+        log.info(" P # ");
+        const daysPhase = [0, 2, 4, 8, 16, 32];
+
+        const daysPhase0 = 0;
+        const daysPhase1 = 2;
+        const daysPhase2 = 4;
+        const daysPhase3 = 8;
+        const daysPhase4 = 16;
+        const daysPhase5 = 32;
+
+        var fullDataSet = this.data;
+        for (var i = 0; i < fullDataSet.length; i++) {
+            var entry = fullDataSet[i];
+            var today = new Date();
+            var lastAsked = new Date();
+            if (entry.lastAsked) {
+                lastAsked = new Date(entry.lastAsked);
+            }
+
+            var lastAskedDelta = this.daysDiff(lastAsked, today);
+            log.info("P # " + entry.phase);
+            if (lastAskedDelta >= daysPhase[entry.phase]) {
+                this.phaseIndices.push(i);
+                this.phaseRelevant++;
+                log.info("P # 0 # Adding Phase=%s Days=%s", entry.phase, lastAskedDelta);
+            } else {
+                log.info("P # 0 # Skipping Phase=%s Days=%s", entry.phase, lastAskedDelta);
+            }
+        }
+    },
     csv: function () {
         var csv_string = "";
         for (var i = 0; i < this.data.length; i++) {
             if (this.data[i].deleted) {
                 log.debug("Skipping " + this.data[i].word + " it is deleted.");
             } else {
-                csv_string += this.data[i].word + ";" + this.data[i].translation + "\n";
+                csv_string += this.data[i].word + ";" + this.data[i].translation + ";" + this.data[i].phase + ";" + this.data[i].lastAsked + "\n";
             }
         }
         return csv_string;
@@ -91,7 +145,7 @@ var VocabularyData = {
                             error: "File not found: " + fn
                         };
                         myself.parseErrors.push(parseError);
-                        // log.debug(this.parseErrors);
+                        log.debug(this.parseErrors);
                         myself.hasError = true;
                         //throw new Error("[VD] Load File failed " + err);
 
@@ -103,9 +157,9 @@ var VocabularyData = {
                     parse(data, {
                         delimiter: ';',
                         relax_column_count: true,
-                        columns: ['word', 'translation', 'genus']
+                        columns: ['word', 'translation', 'phase', 'lastAsked']
                     }, function (err, output) {
-                        log.debug("[VD] ****** Parsed Start:");
+                        log.info("[VD] ****** Parsed Start:");
                         // special handling for our format
 
 
@@ -118,8 +172,11 @@ var VocabularyData = {
                         } else {
                             myself.specialParse(output);
 
-                            log.debug("[VD] ****** Parsed End");
+                            log.info("[VD] ****** Parsed End");
                             // resolve promise
+                            myself.initPhase();
+
+                            log.info("[VD] ****** Phase Init DONE ");
 
                             myself.printInfo();
                             resolve("File Loaded and parsed");
@@ -132,7 +189,7 @@ var VocabularyData = {
 
 
     specialParse: function (data) {
-        log.debug("[VD] FP=%s", this.fullPath);
+        log.info("[VD] FP=%s", this.fullPath);
         var vocs = [];
         var parseProblems = [];
         this.parseErrors = [];
@@ -141,6 +198,8 @@ var VocabularyData = {
             var entry = {
                 word: data[i].word,
                 translation: data[i].translation,
+                phase: data[i].phase,
+                lastAsked: data[i].lastAsked,
                 deleted: false,
                 changed: false,
                 translations: []
@@ -178,7 +237,13 @@ var VocabularyData = {
                 this.hasError = true;
                 //     log.debug("[VD] PS: has errors %s", this.parseErrors.length);
             }
-
+            if (!entry.phase) {
+                entry.phase = 0;
+            }
+            if (!entry.lastAsked) {
+                entry.lastAsked = "";
+            }
+            log.debug(entry);
             // *** spell checker
             entry.spellingError = false;
 
@@ -225,7 +290,7 @@ var VocabularyData = {
         }
         log.debug('[VD] Found Errors %s', this.parseErrors.length);
         this.size = this.data.length;
-       
+
     },
     printInfo: function () {
         log.info('[VD INFO] Vocabulary File=%s, Size=%s, hasErrors=%s, Errors=%s ', this.fileName, this.size, this.hasError, this.parseErrors.length);

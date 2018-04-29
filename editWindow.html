@@ -30,6 +30,8 @@
                     <th scope="col">Foreign</th>
                     <th scope="col">Translation</th>
                     <th scope="col">Error</th>
+                    <th scope="col">Phase</th>
+                    <th scope="col">Last</th> 
                     <th scope="col">Action</th>
                 </tr>
             </thead>
@@ -118,7 +120,7 @@
             });
             tags.addEventListener('EnterPressed', function (e) {
                 log.warn("ENTER on translation %s --> %s", foreign.value, tags.value);
-                addRow(foreign.value, tags.value);
+                addRow(foreign.value, tags.value,"0","-");
                 foreign.value = "";
                 console.log(tags);
                 foreign.focus();
@@ -139,12 +141,14 @@
             tr.innerHTML = "";
         }
 
-        function addRow(foreign, translation) {
+        function addRow(foreign, translation, phase, lastAsked) {
             log.debug("[EW] Adding %s --> %s", foreign, translation);
 
             var entry = {
                 word: foreign,
                 translation: translation,
+                phase: phase,
+                lastAsked: lastAsked,
                 deleted: false,
                 changed: false,
                 translations: []
@@ -163,16 +167,22 @@
             var td_translation = document.createElement("TD");
             td_translation.innerHTML = element.translation;
             var td_error = document.createElement("TD");
+            var td_phase = document.createElement("TD");
+            td_word.innerHTML = element.phase;
+            var td_last = document.createElement("TD");
+            td_word.innerHTML = element.lastAsked;
             var td_action = document.createElement("TD");
-            fillRow(tr, td_no, td_word, td_translation, td_error, td_action)
+            fillRow(tr, td_no, td_word, td_translation, td_error, td_phase, td_last, td_action)
             tableContentElement.appendChild(tr);
         }
 
-        function fillRow(tr, td_no, td_word, td_translation, td_error, td_action) {
+        function fillRow(tr, td_no, td_word, td_translation, td_error, td_phase, td_lastAsked, td_action) {
             tr.appendChild(td_no);
             tr.appendChild(td_word);
             tr.appendChild(td_translation);
             tr.appendChild(td_error);
+            tr.appendChild(td_phase);
+            tr.appendChild(td_lastAsked);
             tr.appendChild(td_action);
         }
 
@@ -200,6 +210,11 @@
                     td_error.innerHTML = element.correctedWord;
                     tr.className = "bg-danger";
                 }
+                var td_phase = document.createElement("TD");
+                td_phase.innerHTML = element.phase;
+                var td_lastAsked = document.createElement("TD");
+                td_lastAsked.innerHTML = element.lastAsked;
+
                 var td_action = document.createElement("TD");
                 var td_action_span = document.createElement("SPAN");
                 td_action_span.className = "oi oi-delete danger";
@@ -228,7 +243,7 @@
                 });
 
                 td_action.appendChild(td_action_span);
-                fillRow(tr, td_no, td_word, td_translation, td_error, td_action);
+                fillRow(tr, td_no, td_word, td_translation, td_error, td_phase, td_lastAsked, td_action);
                 tableContentElement.appendChild(tr);
 
                 // EDIT WORD

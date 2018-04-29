@@ -17,6 +17,7 @@ var mail = require('./assets/js/Mail.js');
 var mqtt = require('./assets/js/MQTT.js');
 var vData = require('./assets/js/VocabularyData.js');
 var testRun = require('./assets/js/VocabularyTest.js');
+var language = testRun.ENGLISH; // used for storiny card information
 
 
 const {
@@ -138,6 +139,16 @@ function nextVocabulary() {
         mqtt.publish(testRun);
         log.debug("[MAIN] MAIL SEND -- Test over");
         mainWindow.webContents.send("test:over", testRun);
+
+        // save due to phase based questions
+        log.debug("[MAIN] data:saveEdit ");
+        //log.debug(vDataSave);
+        vData.data.forEach(function (element) {
+            log.info(" " + element.lastAsked + " " + element.phase + " " + element.word + " = " + element.translation);
+        });
+        vData.save();
+        log.debug("[MAIN] test:run END");
+
         return false;
 
     }
@@ -236,6 +247,8 @@ ipcMain.on('program:ready', function () {
         vData.load(lastFile).then(function (result) {
             testRun.setVocabulary(vData);
             mainWindow.webContents.send("test:fileInfo", vData);
+            log.info("[MAIN] INIT PHASE");
+            testRun.initPhase();
         });
     }
     log.debug("[MAIN:READY] END");
