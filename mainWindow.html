@@ -114,19 +114,22 @@
                     </button>&nbsp;
 
 
-                    <span id="phase-0-label" class="badge badge-danger">0</span>
-              
-                  
-                        <span id="phase-1-label" class="badge badge-danger">0</span>
-                    
-                        <span id="phase-2-label" class="badge badge-warning">0</span>
-                    
-                        <span id="phase-3-label" class="badge badge-warning">0</span>
-                   
-                        <span id="phase-4-label" class="badge badge-success">0</span>
-                   
-                        <span id="phase-5-label" class="badge badge-success">0</span>
-                   
+                    <span id="phase-0-label" data-toggle="tooltip" title="Phase 0" class="badge badge-danger">0</span>
+
+
+                    <span id="phase-1-label" data-toggle="tooltip" title="Phase 1" class="badge badge-danger">0</span>
+
+                    <span id="phase-2-label" data-toggle="tooltip" title="Phase 2" class="badge badge-warning">0</span>
+
+                    <span id="phase-3-label" data-toggle="tooltip" title="Phase 3" class="badge badge-warning">0</span>
+
+                    <span id="phase-4-label" data-toggle="tooltip" title="Phase 4" class="badge badge-success">0</span>
+
+                    <span id="phase-5-label" data-toggle="tooltip" title="Phase 5" class="badge badge-success">0</span>
+                    &nbsp;
+                    <button id="phase-question-due" data-toggle="tooltip" title="Questions due today" type="button" class="btn btn-info">
+                        <span id="showParseErrorCount" class="badge badge-light">34</span>
+                    </button>
                 </div>
 
                 <div class="col-5">
@@ -219,6 +222,8 @@
         const phase4 = document.querySelector('#phase-4-label');
         const phase5 = document.querySelector('#phase-5-label');
 
+        const phaseQuestions = document.querySelector('#phase-question-due');
+
         function showTest() {
             log.debug('[MW] show tests ..');
             navigationCardsElement.hidden = true;
@@ -297,7 +302,7 @@
             phase3.innerHTML = vData.phaseStats[3];
             phase4.innerHTML = vData.phaseStats[4];
             phase5.innerHTML = vData.phaseStats[5];
-
+            phaseQuestions.innerHTML = vData.phaseIndices.length;
 
         });
 
