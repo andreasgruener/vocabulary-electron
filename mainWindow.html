@@ -19,6 +19,7 @@
         <div id="navigationsCards" class="row">
             <div class="col-lg-12 keyvisual">
                 <img class="card-img-top" src="assets/images/vocabulary.jpg" alt="Card image cap">
+
             </div>
         </div>
 
@@ -104,25 +105,35 @@
 
 
             <div class="row">
-                <div class="col-5">
+                <div class="col-7">
                     <div id="fileInfoElement">No File Information</div>
                     <button id="editData" class="btn btn-default">Edit ..</button>
                     <button id="loadFileButton" class="btn btn-primary">Load File ...</button>
                     <button id="showParseErrors" type="button" class="btn btn-danger">
-
                         <span id="showParseErrorCount" class="badge badge-light">4</span>
-                    </button>
-                </div>
+                    </button>&nbsp;
 
-                <div class="col-2">
-                    <div></div>
+
+                    <span id="phase-0-label" class="badge badge-danger">0</span>
+              
+                  
+                        <span id="phase-1-label" class="badge badge-danger">0</span>
+                    
+                        <span id="phase-2-label" class="badge badge-warning">0</span>
+                    
+                        <span id="phase-3-label" class="badge badge-warning">0</span>
+                   
+                        <span id="phase-4-label" class="badge badge-success">0</span>
+                   
+                        <span id="phase-5-label" class="badge badge-success">0</span>
+                   
                 </div>
 
                 <div class="col-5">
                     <div class="form-check">
                         <input type="checkbox" class="form-check-input" id="speechActive">
                         <label class="form-check-label" for="exampleCheck1">Speech</label>
-                        <i>(Version: 29-04-18 PHASE)</i>
+                        <i>(Version: 29-04-30)</i>
                     </div>
                     <form onsubmit="return false">
                         <div class="input-group">
@@ -139,7 +150,9 @@
                                 <option value="30" selected>30 words</option>
                                 <option value="40">40 words</option>
                                 <option value="50">50 words</option>
-                                <option value="100">All</option>
+                                <option value="100">100 words</option>
+                                <option value="150">150 words</option>
+                                <option value="999">All</option>
                             </select>
                             <div class="input-group-append">
                                 <button id="runtest" class="btn btn-success">Start</button>
@@ -199,6 +212,12 @@
         const testCardElement = document.querySelector('#testCard');
         const navigationCardsElement = document.querySelector('#navigationsCards');
 
+        const phase0 = document.querySelector('#phase-0-label');
+        const phase1 = document.querySelector('#phase-1-label');
+        const phase2 = document.querySelector('#phase-2-label');
+        const phase3 = document.querySelector('#phase-3-label');
+        const phase4 = document.querySelector('#phase-4-label');
+        const phase5 = document.querySelector('#phase-5-label');
 
         function showTest() {
             log.debug('[MW] show tests ..');
@@ -250,12 +269,14 @@
 
         //  show file info
         ipcRenderer.on('test:fileInfo', function (e, vData) {
-            log.debug('[MW] test:fileInfo vData: %s', vData.hasError);
+            log.info('[MW] test:fileInfo vData: %s', vData.hasError);
             //    log.info(vData.parseErrors);
-            log.debug('[MW] test:fileName: %s / %s', vData.fileName, vData.fullPath);
+            log.info('[MW] ');;
+            log.info('[MW] test:fileName: %s / %s', vData.fileName, vData.fullPath);
             fileInfoElement.innerHTML = "Vocabulary: " + vData.fileName + " (" + vData.size + ")";
             //vData.printInfo();
             // set main display fr file info
+            log.info('[MW] ');;
             if (vData.hasError) {
                 parseErrorsList = vData.parseErrors;
                 showParseErrorsButton.className = "btn btn-danger";
@@ -266,6 +287,18 @@
                 showParseErrorsCountElement.innerHTML = "OK";
                 // popup data remember data for later
             }
+            log.info('[MW] ');;
+            // display phases
+            log.info("[MW] P " + vData.phaseStats[0]);
+            phase0.innerHTML = vData.phaseStats[0];
+            log.info("[MW] P " + vData.phaseStats[1]);
+            phase1.innerHTML = vData.phaseStats[1];
+            phase2.innerHTML = vData.phaseStats[2];
+            phase3.innerHTML = vData.phaseStats[3];
+            phase4.innerHTML = vData.phaseStats[4];
+            phase5.innerHTML = vData.phaseStats[5];
+
+
         });
 
         //  show question

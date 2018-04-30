@@ -15,6 +15,7 @@ var VocabularyData = {
     phaseIndices: [],
     phaseRelevant: 0,
     parseErrors: [],
+    phaseStats: [],
     hasError: false,
     size: 0,
     name: "myname",
@@ -24,6 +25,7 @@ var VocabularyData = {
         this.fullPath = fn;
         this.size = 0;
         this.data = [];
+        this.phaseStats = [];
         this.hasError = false;
         this.vocabulary = [];
         this.parseErrors = [];
@@ -87,7 +89,10 @@ var VocabularyData = {
         this.phaseIndices.length = 0;
         // determine which entries are ready to be asked
         log.info(" P # ");
-        const daysPhase = [0, 2, 4, 8, 16, 32];
+        for ( var p =0; p<=5; p++ ) {
+            this.phaseStats[p] = 0; // init
+        }
+        const daysPhase = [0, 1, 2, 4, 8, 16];
 
         const daysPhase0 = 0;
         const daysPhase1 = 2;
@@ -114,6 +119,8 @@ var VocabularyData = {
             } else {
                 log.info("P # 0 # Skipping Phase=%s Days=%s", entry.phase, lastAskedDelta);
             }
+            this.phaseStats[entry.phase] = this.phaseStats[entry.phase] + 1;
+            log.info("[VD] P " + this.phaseStats[entry.phase]);
         }
     },
     csv: function () {
