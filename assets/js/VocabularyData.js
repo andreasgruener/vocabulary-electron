@@ -79,7 +79,7 @@ var VocabularyData = {
 
         // Calculate the difference in milliseconds
         var difference_ms = date2_ms - date1_ms;
-
+       //  log.info("D1=%s D2=%s DELTA=%s", date1_ms, date2_ms, difference_ms);
         // Convert back to days and return
         return Math.round(difference_ms / one_day);
 
@@ -88,11 +88,11 @@ var VocabularyData = {
         // empty current entry https://stackoverflow.com/questions/1232040/how-do-i-empty-an-array-in-javascript
         this.phaseIndices.length = 0;
         // determine which entries are ready to be asked
-        log.info(" P # ");
+        log.info(" P # PHASES ");
         for ( var p =0; p<=5; p++ ) {
             this.phaseStats[p] = 0; // init
         }
-        const daysPhase = [0, 1, 2, 4, 8, 16];
+        const daysPhase = [0, 2, 4, 8, 16, 24];
 
         const daysPhase0 = 0;
         const daysPhase1 = 2;
@@ -111,13 +111,13 @@ var VocabularyData = {
             }
 
             var lastAskedDelta = this.daysDiff(lastAsked, today);
-            log.info("P # " + entry.phase);
+           // log.info("P # Phase=%s, Today=%s, LastAsked=%s, Delta=%s", entry.phase, today, lastAsked, lastAskedDelta);
             if (lastAskedDelta >= daysPhase[entry.phase]) {
                 this.phaseIndices.push(i);
                 this.phaseRelevant++;
-                log.info("P # 0 # Adding Phase=%s Days=%s", entry.phase, lastAskedDelta);
+                log.info("P # 0 # Adding Phase=%s Days=%s (Delay=%s)", entry.phase, lastAskedDelta,daysPhase[entry.phase]);
             } else {
-                log.info("P # 0 # Skipping Phase=%s Days=%s", entry.phase, lastAskedDelta);
+                log.info("P # 0 # Skipping Phase=%s Days=%s (Delay=%s)", entry.phase, lastAskedDelta,daysPhase[entry.phase]);
             }
             this.phaseStats[entry.phase] = this.phaseStats[entry.phase] + 1;
             log.info("[VD] P " + this.phaseStats[entry.phase]);

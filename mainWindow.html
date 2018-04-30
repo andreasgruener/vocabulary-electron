@@ -276,12 +276,10 @@
         ipcRenderer.on('test:fileInfo', function (e, vData) {
             log.info('[MW] test:fileInfo vData: %s', vData.hasError);
             //    log.info(vData.parseErrors);
-            log.info('[MW] ');;
             log.info('[MW] test:fileName: %s / %s', vData.fileName, vData.fullPath);
             fileInfoElement.innerHTML = "Vocabulary: " + vData.fileName + " (" + vData.size + ")";
             //vData.printInfo();
             // set main display fr file info
-            log.info('[MW] ');;
             if (vData.hasError) {
                 parseErrorsList = vData.parseErrors;
                 showParseErrorsButton.className = "btn btn-danger";
@@ -292,11 +290,8 @@
                 showParseErrorsCountElement.innerHTML = "OK";
                 // popup data remember data for later
             }
-            log.info('[MW] ');;
             // display phases
-            log.info("[MW] P " + vData.phaseStats[0]);
             phase0.innerHTML = vData.phaseStats[0];
-            log.info("[MW] P " + vData.phaseStats[1]);
             phase1.innerHTML = vData.phaseStats[1];
             phase2.innerHTML = vData.phaseStats[2];
             phase3.innerHTML = vData.phaseStats[3];
