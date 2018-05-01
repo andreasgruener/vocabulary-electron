@@ -95,7 +95,6 @@
         log.info('[EW] START EDIT');
 
         function changedElement(element) {
-            log.info("[EW] Changed to " + element.word);
             saveButton.disabled = false;
         }
 
@@ -107,7 +106,7 @@
             translation.value = "";
 
             foreign.addEventListener('keyup', function (event) {
-                log.info('[EW] FOREIGN' + event);
+             
                 if (event.key === "Enter") {
                     translation.focus();
                     window.scrollTo(300,0);
@@ -118,7 +117,7 @@
             });
 
             translation.addEventListener('keyup', function (event) {
-                log.info('[EW] TRANS' + event);
+               
                 if (event.key === "Enter") {
                     addRow(foreign.value, translation.value, "0", "");
                     translation.value = "";
@@ -215,7 +214,7 @@
             // edit row entries
             // EDIT WORD
             td_word.addEventListener('click', function () {
-                log.info('[SWHE] START DONE');
+           
                 var input_element = document.createElement("INPUT");
                 input_element.setAttribute("type", "text");
                 input_element.className = "bg-yellow";
@@ -253,7 +252,7 @@
 
             // EDIT TRANSLATION
             td_translation.addEventListener('click', function () {
-                log.info('[STHE] START DONE');
+       
                 var input_element = document.createElement("INPUT");
                 input_element.setAttribute("type", "text");
                 input_element.className = "bg-yellow";
@@ -265,7 +264,7 @@
                     td_lastAsked, td_action);
                 input_element.focus();
                 input_element.addEventListener('keyup', function (event) {
-                    log.info("EVENT " + event);
+        
                     if (event.key === "Enter" || event.key === "Tab") {
                         td_translation.innerHTML = input_element.value;
                         td_translation.className = "teal font-weight-bold";
@@ -280,7 +279,7 @@
                         log.warn(input_element.value);
                         changedElement(element);
                     } else if (event.key === "Escape") {
-                        log.warn("ESCAPE");
+                     
                         cleanRow(tr);
                         fillRow(tr, td_no, td_word, td_translation,
                             td_error,
@@ -307,8 +306,7 @@
 
 
         ipcRenderer.on('data:fileInfo', function (e, vData) {
-            log.info('[EW] test:fileInfo');
-            //    log.info(vData);
+           
             var word_cnt = 0;
             vData_SAVE = vData;
             vData.data.forEach(function (element) {
