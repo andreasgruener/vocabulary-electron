@@ -7,3 +7,4 @@ npm-debug.log
 Settings.js
 assets/icons/**
 package-lock.json
+**/*.save
