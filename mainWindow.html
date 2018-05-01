@@ -314,7 +314,7 @@
                 spanElement.className = "alert alert-success"; //role="alert"
                 //  spanElement.className = "alert alert-success animated bounce";
                 //     testCorrectElement.className += " animated wobble";
-                log.info('[MW] test:result OK');
+                log.debug('[MW] test:result OK');
 
             } else {
                 log.debug('[MW] ***** CORRECT IS %s', testRun.correctTranslations[0]);
@@ -368,7 +368,6 @@
 
 
             swal("Wrong answers - Rerun required!", successMessage, "success").then((result) => {
-                log.debug('[MW] Callback SWAL2');
                 errorElement.innerHTML = "";
                 displayQuestion(testRun);
             });
@@ -391,7 +390,7 @@
         showParseErrorsButton.addEventListener('click', closeForm);
 
         function closeForm() {
-            log.info('[MW] parseErrors 2');
+        
             var errors = "";
             if (parseErrorsList && parseErrorsList.length > 0) {
                 errors = '<ul class="list-group">';

@@ -31,7 +31,7 @@
                     <th scope="col">Translation</th>
                     <th scope="col">Error</th>
                     <th scope="col">Phase</th>
-                    <th scope="col">Last</th> 
+                    <th scope="col">Last</th>
                     <th scope="col">Action</th>
                 </tr>
             </thead>
@@ -47,26 +47,26 @@
 
             <div class="row" style="padding-top:10px;">
                 <div class="col-1">
-                  <!--  <div>&nbsp;</div> -->
+                    <!--  <div>&nbsp;</div> -->
                     <button id="backButton" type="button" class="btn btn-default">Back</button>
                 </div>
 
                 <div class="col-4">
-                  <!--  <div>&nbsp;</div> -->
-                    <input id="new-foreign" size="30" class="form-control" placeholder="English" autofocus>
+                    <!--  <div>&nbsp;</div> -->
+                    <input id="new-foreign" size="30" class="form-control" placeholder="English/Latein" autofocus>
 
                 </div>
                 <div class="col-4">
-                  <!--  <div>&nbsp;</div> -->
-                    <span id="new-translation"></span>
+                    <!--  <div>&nbsp;</div> -->
+                    <input id="new-translation" size="30" class="form-control" placeholder="Deutsch">
                     <!-- input id="new-translation" type="tags" placeholder="add..." /-->
                 </div>
 
                 <div class="col-1">
-                  <!--  <div>&nbsp;</div> -->
+                    <!--  <div>&nbsp;</div> -->
                 </div>
                 <div class="col-2">
-                  <!--  <div>&nbsp;</div> -->
+                    <!--  <div>&nbsp;</div> -->
                     <button id="saveButton" type="button" class="btn btn-primary float-right">Save ..</button>
                 </div>
             </div>
@@ -78,7 +78,7 @@
         const electron = require('electron');
         const log = require('electron-log');
         const swal = require('sweetalert2');
-        const tagsInput = require('tags-input');
+        //  const tagsInput = require('tags-input');
 
         // const swal2 = require('swal-forms');
         const {
@@ -89,52 +89,49 @@
         const saveButton = document.querySelector('#saveButton');
         const backButton = document.querySelector('#backButton');
 
-        const translation = document.querySelector('#new-translation');
         const foreign = document.querySelector('#new-foreign');
+        const translation = document.querySelector('#new-translation');
+
         log.info('[EW] START EDIT');
 
-        function changedElement(element, position) {
-            // log.debug("[EW] Changed to " + element.word);
-            // log.debug("[EW] Changed from " + vData_SAVE.data[position-1].word);
+        function changedElement(element) {
+            log.info("[EW] Changed to " + element.word);
             saveButton.disabled = false;
         }
 
-        function upsertTranslationTagInput(tags) {
-
-            tags.className = "formControl";
-            tags.setAttribute('type', 'tags');
-            tagsInput(tags);
-            return tags;
-        }
 
         function showEditor() {
             // add tags edit for input field
-            var tags = document.createElement("INPUT");
-            translation.innerHTML = "";
-            translation.appendChild(tags);
-            upsertTranslationTagInput(tags);
-            //   translation.focus();
-            tags.addEventListener('EscapePressed', function (e) {
-                log.warn("ESCAPE");
 
-            });
-            tags.addEventListener('EnterPressed', function (e) {
-                log.warn("ENTER on translation %s --> %s", foreign.value, tags.value);
-                addRow(foreign.value, tags.value,"0","-");
-                foreign.value = "";
-                console.log(tags);
-                foreign.focus();
-                showEditor();
-             
-                // clear tags
+            foreign.value = "";
+            translation.value = "";
 
-            });
-            foreign.addEventListener('keyup', function () {
+            foreign.addEventListener('keyup', function (event) {
+                log.info('[EW] FOREIGN' + event);
                 if (event.key === "Enter") {
-                    log.warn("ENTER IN FOREIGN");
-                   // tags.focus();
+                    translation.focus();
+                    window.scrollTo(300,0);
+                }
+                if (event.key === "Escape") {
+                    foreign.value = "";
                 }
             });
+
+            translation.addEventListener('keyup', function (event) {
+                log.info('[EW] TRANS' + event);
+                if (event.key === "Enter") {
+                    addRow(foreign.value, translation.value, "0", "");
+                    translation.value = "";
+                    foreign.value = "";
+                    foreign.focus();
+                   // showEditor();
+
+                }
+                if (event.key === "Escape") {
+                    translation.value = "";
+                }
+            });
+
         }
 
         function cleanRow(tr) {
@@ -154,26 +151,146 @@
                 translations: []
             };
             vData_SAVE.data.push(entry);
-            createRow(entry);
+            createRow(entry,"-");
             changedElement(entry, 0);
         }
-
-        function createRow(element) {
+        /**
+         * Includes the edit functinality
+         */
+        function createRow(element, word_cnt) {
             var tr = document.createElement("TR");
             var td_no = document.createElement("TD");
-            td_no.innerHTML = "";
+            td_no.innerHTML = word_cnt;
             var td_word = document.createElement("TD");
             td_word.innerHTML = element.word;
             var td_translation = document.createElement("TD");
             td_translation.innerHTML = element.translation;
             var td_error = document.createElement("TD");
+            td_error.innerHTML = "-";
+            if (element.spellingError) {
+                td_error.innerHTML = element.correctedWord;
+                tr.className = "bg-danger";
+            }
             var td_phase = document.createElement("TD");
-            td_word.innerHTML = element.phase;
-            var td_last = document.createElement("TD");
-            td_word.innerHTML = element.lastAsked;
+            td_phase.innerHTML = element.phase;
+            var td_lastAsked = document.createElement("TD");
+            if (element.lastAsked) {
+                td_lastAsked.innerHTML = element.lastAsked;
+            }
+       
+
+            // remove row
             var td_action = document.createElement("TD");
-            fillRow(tr, td_no, td_word, td_translation, td_error, td_phase, td_last, td_action)
+            var td_action_span = document.createElement("SPAN");
+            td_action_span.className = "oi oi-delete danger";
+            td_action_span.title = "Delete";
+            td_action_span.setAttribute("aria-hidden", "true");
+            td_action.addEventListener('click', function () {
+                swal({
+                    title: 'Are you sure?',
+                    text: "You won't be able to revert this!",
+                    type: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes, delete it!',
+                    cancelButtonText: 'No, keep it!'
+                }).then((result) => {
+                    if (result.value) {
+                        tr.className = "deleted-row teal";
+                        element.deleted = "true";
+                        changedElement(element);
+                    } else {
+                        tr.className = "";
+                        element.deleted = "false";
+                    }
+                });
+            });
+            td_action.appendChild(td_action_span);
+
+
+            fillRow(tr, td_no, td_word, td_translation, td_error, td_phase, td_lastAsked, td_action)
             tableContentElement.appendChild(tr);
+
+            // edit row entries
+            // EDIT WORD
+            td_word.addEventListener('click', function () {
+                log.info('[SWHE] START DONE');
+                var input_element = document.createElement("INPUT");
+                input_element.setAttribute("type", "text");
+                input_element.className = "bg-yellow";
+                input_element.value = td_word.innerHTML;
+                cleanRow(tr);
+                fillRow(tr, td_no, input_element, td_translation, td_error, td_phase,
+                    td_lastAsked, td_action);
+                input_element.focus();
+                input_element.addEventListener('keyup', function () {
+                    if (event.key === "Enter" || event.key === "Tab") {
+                        td_word.innerHTML = input_element.value;
+                        td_word.className = "teal font-weight-bold";
+                        cleanRow(tr);
+                        fillRow(tr, td_no, td_word, td_translation,
+                            td_error,
+                            td_phase,
+                            td_lastAsked,
+                            td_action);
+                        // need to store the changed entry
+                        element.word = input_element.value;
+                        element.changed = true;
+                        //log.debug(vData);
+                        changedElement(element);
+                    }
+                    if (event.key === "Escape") {
+                        cleanRow(tr);
+                        fillRow(tr, td_no, td_word, td_translation,
+                            td_error,
+                            td_phase,
+                            td_lastAsked,
+                            td_action);
+                    }
+                });
+            });
+
+            // EDIT TRANSLATION
+            td_translation.addEventListener('click', function () {
+                log.info('[STHE] START DONE');
+                var input_element = document.createElement("INPUT");
+                input_element.setAttribute("type", "text");
+                input_element.className = "bg-yellow";
+                input_element.value = td_translation.innerHTML;
+
+
+                cleanRow(tr);
+                fillRow(tr, td_no, td_word, input_element, td_error, td_phase,
+                    td_lastAsked, td_action);
+                input_element.focus();
+                input_element.addEventListener('keyup', function (event) {
+                    log.info("EVENT " + event);
+                    if (event.key === "Enter" || event.key === "Tab") {
+                        td_translation.innerHTML = input_element.value;
+                        td_translation.className = "teal font-weight-bold";
+                        cleanRow(tr);
+                        fillRow(tr, td_no, td_word, td_translation, td_error,
+                            td_phase,
+                            td_lastAsked,
+                            td_action);
+                        // need to store the changed entry
+                        element.translation = input_element.value;
+                        element.changed = true;
+                        log.warn(input_element.value);
+                        changedElement(element);
+                    } else if (event.key === "Escape") {
+                        log.warn("ESCAPE");
+                        cleanRow(tr);
+                        fillRow(tr, td_no, td_word, td_translation,
+                            td_error,
+                            td_phase,
+                            td_lastAsked,
+                            td_action);
+                    }
+                });
+            });
+
         }
 
         function fillRow(tr, td_no, td_word, td_translation, td_error, td_phase, td_lastAsked, td_action) {
@@ -195,131 +312,7 @@
             var word_cnt = 0;
             vData_SAVE = vData;
             vData.data.forEach(function (element) {
-                //   log.info(element);
-                var tr = document.createElement("TR");
-                var td_no = document.createElement("TD");
-                td_no.innerHTML = ++word_cnt;
-                var currentPosition = word_cnt;
-                var td_word = document.createElement("TD");
-                td_word.innerHTML = element.word;
-                var td_translation = document.createElement("TD");
-                td_translation.innerHTML = element.translation;
-                var td_error = document.createElement("TD");
-                td_error.innerHTML = "-";
-                if (element.spellingError) {
-                    td_error.innerHTML = element.correctedWord;
-                    tr.className = "bg-danger";
-                }
-                var td_phase = document.createElement("TD");
-                td_phase.innerHTML = element.phase;
-                var td_lastAsked = document.createElement("TD");
-                td_lastAsked.innerHTML = element.lastAsked;
-
-                var td_action = document.createElement("TD");
-                var td_action_span = document.createElement("SPAN");
-                td_action_span.className = "oi oi-delete danger";
-                td_action_span.title = "Delete";
-                td_action_span.setAttribute("aria-hidden", "true");
-                td_action.addEventListener('click', function () {
-                    swal({
-                        title: 'Are you sure?',
-                        text: "You won't be able to revert this!",
-                        type: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#3085d6',
-                        cancelButtonColor: '#d33',
-                        confirmButtonText: 'Yes, delete it!',
-                        cancelButtonText: 'No, keep it!'
-                    }).then((result) => {
-                        if (result.value) {
-                            tr.className = "deleted-row teal";
-                            element.deleted = "true";
-                            changedElement(element, currentPosition);
-                        } else {
-                            tr.className = "";
-                            element.deleted = "false";
-                        }
-                    });
-                });
-
-                td_action.appendChild(td_action_span);
-                fillRow(tr, td_no, td_word, td_translation, td_error, td_phase, td_lastAsked, td_action);
-                tableContentElement.appendChild(tr);
-
-                // EDIT WORD
-                td_word.addEventListener('click', function () {
-                    log.info('[SWHE] START DONE');
-                    var input_element = document.createElement("INPUT");
-                    input_element.setAttribute("type", "text");
-                    input_element.className = "bg-yellow";
-                    input_element.value = td_word.innerHTML;
-                    cleanRow(tr);
-                    fillRow(tr, td_no, input_element, td_translation, td_error, td_action);
-                    input_element.focus();
-                    input_element.addEventListener('keyup', function () {
-                        if (event.key === "Enter") {
-                            td_word.innerHTML = input_element.value;
-                            td_word.className = "teal font-weight-bold";
-                            cleanRow(tr);
-                            fillRow(tr, td_no, td_word, td_translation,
-                                td_error,
-                                td_action);
-                            // need to store the changed entry
-                            element.word = input_element.value;
-                            element.changed = true;
-                            //log.debug(vData);
-                            changedElement(element, currentPosition);
-                        }
-                        if (event.key === "Escape") {
-                            cleanRow(tr);
-                            fillRow(tr, td_no, td_word, td_translation,
-                                td_error,
-                                td_action);
-                        }
-                    });
-                });
-
-                // EDIT TRANSLATION
-                td_translation.addEventListener('click', function () {
-                    log.info('[STHE] START DONE');
-                    var input_td = document.createElement("TD");
-                    var input_element = document.createElement("INPUT");
-                    //  input_element.setAttribute("type", "text");
-                    input_element.setAttribute('type', 'tags');
-
-                    input_element.className = "bg-yellow";
-                    input_element.value = td_translation.innerHTML;
-                    input_td.appendChild(input_element);
-
-                    cleanRow(tr);
-                    fillRow(tr, td_no, td_word, input_td, td_error, td_action);
-                    tagsInput(input_element);
-                    input_element.focus();
-                    input_element.addEventListener('EscapePressed', function (e) {
-                        log.warn("ESCAPE");
-                        cleanRow(tr);
-                        fillRow(tr, td_no, td_word, td_translation,
-                            td_error,
-                            td_action);
-
-                    });
-                    input_element.addEventListener('EnterPressed', function (e) {
-                        log.warn("ENTER");
-                        td_translation.innerHTML = input_element.value;
-                        td_translation.className = "teal font-weight-bold";
-                        cleanRow(tr);
-                        fillRow(tr, td_no, td_word, td_translation, td_error,
-                            td_action);
-                        // need to store the changed entry
-                        element.translation = input_element.value;
-                        element.changed = true;
-                        log.warn(input_element.value);
-                        changedElement(element, currentPosition);
-
-                    });
-                });
-
-
+                createRow(element, word_cnt++);
             });
         });
 

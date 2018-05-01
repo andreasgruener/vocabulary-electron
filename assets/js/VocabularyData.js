@@ -44,8 +44,8 @@ var VocabularyData = {
     //         log.debug('[VD] No file to load %s', file);
     //     }
     // },
-
-    save: function () {
+    // callback
+    save: function (doSomethingWithSavedFile) {
         var fn = this.fullPath;
         var oldPath = fn;
         var newPath = fn + ".save";
@@ -63,6 +63,7 @@ var VocabularyData = {
                     return console.log(err);
                 }
                 log.info("[VD] The file %s was saved!", fn);
+                doSomethingWithSavedFile(myself.fullPath); // callback for reload
             });
             log.info("[VD] moved file from %s to %s", oldPath, newPath);
         });

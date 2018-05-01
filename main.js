@@ -16,8 +16,8 @@ username().then(username => {
 var mail = require('./assets/js/Mail.js');
 var mqtt = require('./assets/js/MQTT.js');
 var vData = require('./assets/js/VocabularyData.js');
-var testRun = require('./assets/js/VocabularyTest.js');
-var language = testRun.ENGLISH; // used for storiny card information
+var VocabularyTest = require('./assets/js/VocabularyTest.js');
+var language = VocabularyTest.ENGLISH; // used for storiny card information
 
 
 const {
@@ -109,36 +109,36 @@ app.on('ready', function () {
     log.info('Dear %s, yeah. I am ready!', currentUser);
     // loadLastFile();
 
-    // mqtt.publish(testRunData);
+    // mqtt.publish(VocabularyTestData);
 });
 
 function nextVocabulary() {
-    var entry = testRun.next();
+    var entry = VocabularyTest.next();
     log.info("[MAIN] Next vocabulary ");
-    if (testRun.rerun) {
+    if (VocabularyTest.rerun) {
         log.info("[MAIN] RERUN You got wrong answers");
-        entry = testRun.nextRerun();
+        entry = VocabularyTest.nextRerun();
     }
 
     if (entry) {
         log.info("[MAIN] Entry");
-        if (testRun.rerun && testRun.currentWrongIndex == 1) {  // display info the first entry if rerun
+        if (VocabularyTest.rerun && VocabularyTest.currentWrongIndex == 1) {  // display info the first entry if rerun
             log.info("[MAIN] RERUN INFO");
-            mainWindow.send("test:showWrongAnswers", testRun); // calls display after dismissal
+            mainWindow.send("test:showWrongAnswers", VocabularyTest); // calls display after dismissal
         } else {
-            mainWindow.webContents.send("test:display", testRun);
+            mainWindow.webContents.send("test:display", VocabularyTest);
         }
         log.info("[MAIN] Test Display");
         return true;
     } else {
         log.info("[MAIN] Test over");
-        testRun.calcGrade();
-        log.debug(testRun);
-        testRun.user = currentUser;
-        mail.sendMail(testRun);
-        mqtt.publish(testRun);
+        VocabularyTest.calcGrade();
+        log.debug(VocabularyTest);
+        VocabularyTest.user = currentUser;
+        mail.sendMail(VocabularyTest);
+        mqtt.publish(VocabularyTest);
         log.debug("[MAIN] MAIL SEND -- Test over");
-        mainWindow.webContents.send("test:over", testRun);
+        mainWindow.webContents.send("test:over", VocabularyTest);
 
         // save due to phase based questions
         log.debug("[MAIN] data:saveEdit ");
@@ -154,6 +154,14 @@ function nextVocabulary() {
     }
 }
 
+function loadFile(fileName) {
+    log.info("[M] Load File " + fileName);
+    vData.load(fileName).then(function (result) {
+        VocabularyTest.setVocabulary(vData);
+        mainWindow.webContents.send("test:fileInfo", vData);
+    });
+}
+
 
 // Show Edit Window
 ipcMain.on('data:close', function (e) {
@@ -166,6 +174,9 @@ ipcMain.on('data:showEdit', function (e) {
     createNewWindow();
 });
 
+
+
+
 // Show Edit Window
 ipcMain.on('data:save', function (e, vDataSave) {
     log.debug("[MAIN] data:saveEdit ");
@@ -174,7 +185,9 @@ ipcMain.on('data:save', function (e, vDataSave) {
         log.debug(" " + element.deleted + " " + element.changed + " " + element.word + " = " + element.translation);
     });
     vData.data = vDataSave.data;
-    vData.save();
+    vData.save(loadFile); // callback to load file after saving
+    editWindow.close(); // close the edit window
+  
     log.debug("[MAIN] test:run END");
 });
 
@@ -182,7 +195,7 @@ ipcMain.on('data:save', function (e, vDataSave) {
 ipcMain.on('test:run', function (e, count, type) {
     log.info("[MAIN] *** test:run cnt=%s type=%s", count, type);
     targetCount = count;
-    testRun.start(targetCount, type);
+    VocabularyTest.start(targetCount, type);
     nextVocabulary();
     log.debug("[MAIN] test:run END");
 });
@@ -190,8 +203,8 @@ ipcMain.on('test:run', function (e, count, type) {
 // Catch test:answer
 ipcMain.on('test:answer', function (e, checkEntry) {
     log.debug("[MAIN] test:answer %s/%s", checkEntry.word, checkEntry.translation);
-    testRun.check(checkEntry);
-    mainWindow.webContents.send("test:result", testRun);
+    VocabularyTest.check(checkEntry);
+    mainWindow.webContents.send("test:result", VocabularyTest);
     // get next vocabulary and sent it with current stats
     nextVocabulary();
     log.debug("[MAIN] test:answer END");
@@ -214,7 +227,7 @@ ipcMain.on('test:load', function (e, item) {
             const fileDir = path.parse(fileName).dir;
             try {
                 vData.load(fileName).then(function (result, reject) {
-                    testRun.setVocabulary(vData);
+                    VocabularyTest.setVocabulary(vData);
                     mainWindow.webContents.send("test:fileInfo", vData);
                     store.set('vocabularyFileName', vData.fullPath);
                 });
@@ -233,10 +246,11 @@ ipcMain.on('test:load', function (e, item) {
                 mainWindow.webContents.send("test:fileInfo", vData);
             }
         });
-    testRun.setVocabulary(vData);
+    VocabularyTest.setVocabulary(vData);
     mainWindow.webContents.send("test:fileInfo", vData);
     log.debug("[MAIN] test:load END");
 });
+
 
 // check if we have a vocabulary file to open from user preferences
 ipcMain.on('program:ready', function () {
@@ -244,12 +258,8 @@ ipcMain.on('program:ready', function () {
         log.debug("[MAIN:READY] Tried to reload");
     } else {
         var lastFile = store.get('vocabularyFileName');
-        vData.load(lastFile).then(function (result) {
-            testRun.setVocabulary(vData);
-            mainWindow.webContents.send("test:fileInfo", vData);
-            log.info("[MAIN] INIT PHASE");
-            testRun.initPhase();
-        });
+        loadFile(lastFile);
+
     }
     log.debug("[MAIN:READY] END");
 });
