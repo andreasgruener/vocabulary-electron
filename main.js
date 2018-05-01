@@ -146,7 +146,7 @@ function nextVocabulary() {
         vData.data.forEach(function (element) {
             log.info(" " + element.lastAsked + " " + element.phase + " " + element.word + " = " + element.translation);
         });
-        vData.save();
+        vData.save(loadFile);
         log.debug("[MAIN] test:run END");
 
         return false;
