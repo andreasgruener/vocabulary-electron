@@ -74,10 +74,11 @@
     </footer>
 
     <script>
-        var vData_SAVE; // data to save
+        var editedEntries; // data to save
         const electron = require('electron');
         const log = require('electron-log');
         const swal = require('sweetalert2');
+        const VocTest = require('./assets/js/VocTest.js');
         //  const tagsInput = require('tags-input');
 
         // const swal2 = require('swal-forms');
@@ -109,7 +110,6 @@
              
                 if (event.key === "Enter") {
                     translation.focus();
-                    window.scrollTo(300,0);
                 }
                 if (event.key === "Escape") {
                     foreign.value = "";
@@ -119,6 +119,7 @@
             translation.addEventListener('keyup', function (event) {
                
                 if (event.key === "Enter") {
+                    log.info("Add ROW");
                     addRow(foreign.value, translation.value, "0", "");
                     translation.value = "";
                     foreign.value = "";
@@ -149,7 +150,7 @@
                 changed: false,
                 translations: []
             };
-            vData_SAVE.data.push(entry);
+            editedEntries.push(entry);
             createRow(entry,"-");
             changedElement(entry, 0);
         }
@@ -305,13 +306,14 @@
 
 
 
-        ipcRenderer.on('data:fileInfo', function (e, vData) {
-           
+        ipcRenderer.on('data:fileInfo', function (e, vocTest) {
+            log.info("[EW Start Edit with ..." + vocTest.fileContent._entries.length);
+            editedEntries = vocTest.fileContent._entries;
             var word_cnt = 0;
-            vData_SAVE = vData;
-            vData.data.forEach(function (element) {
+            vocTest.fileContent._entries.forEach(function (element) {
                 createRow(element, word_cnt++);
             });
+           
         });
 
 
@@ -327,7 +329,7 @@
                 cancelButtonText: "No, don't!"
             }).then((result) => {
                 if (result.value) {
-                    ipcRenderer.send("data:save", vData_SAVE);
+                    ipcRenderer.send("data:save", editedEntries);
                 } else {
                     // do nothing
                 }

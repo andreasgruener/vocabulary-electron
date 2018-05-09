@@ -4,8 +4,6 @@ module.exports = {
     }
   };
 
-
-
 function loadLastFileInternal() {
     var lastFile = store.get('vocabularyFileName');
 

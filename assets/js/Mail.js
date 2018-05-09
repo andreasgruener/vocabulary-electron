@@ -14,6 +14,7 @@ const Settings = require('./Settings.js');
 log.debug("***********************");
 
 function sendMailInternal(testRunData) {
+	return;
 	log.debug("--- MAIL --- Connected");
 	log.warn("******** SETTINGS " + Settings.MAIL_PASSWORT );
     let transporter = nodemailer.createTransport({

@@ -16,14 +16,17 @@
     </header>
 
     <div class="container-fluid body-content">
-        <div id="navigationsCards" class="row">
-            <div class="col-lg-12 keyvisual">
-                <img class="card-img-top" src="assets/images/vocabulary.jpg" alt="Card image cap">
+        <div id="navigationsCards">
+            <div class="col-lg-12 keyvisual row">
+                <img class="card-img-top text-center vocabulary-keyvisual" src="assets/images/vocabulary.jpg" alt="Card image cap">
+            </div>
+            <div >
 
+                <div id="fileStructure" class="row">
+                    <!-- file parser result added here-->
+                </div>
             </div>
         </div>
-
-
         <div id='testCard' class="row">
             <div class="col-sm-12 col-lg-12 col-xl-12">
                 <!-- VOCABULARY CARD -->
@@ -57,6 +60,9 @@
                                 </button>
                             </div>
                         </div>
+
+
+
                         <div class="row">
                             <div id="errorDisplay" class="col-12">
 
@@ -214,6 +220,7 @@
 
         const testCardElement = document.querySelector('#testCard');
         const navigationCardsElement = document.querySelector('#navigationsCards');
+        const fileStructurElement = document.querySelector('#fileStructure');
 
         const phase0 = document.querySelector('#phase-0-label');
         const phase1 = document.querySelector('#phase-1-label');
@@ -223,6 +230,68 @@
         const phase5 = document.querySelector('#phase-5-label');
 
         const phaseQuestions = document.querySelector('#phase-question-due');
+
+        const phaseCardDiv = document.querySelector('#phase-5-label');
+
+        function createFileCard(fileEntry) {
+            var div = document.createElement("div");
+            div.className = "mb-2 col-xs-12 col-sm-12 col-md-6 col-lg-6 col-xl-4";
+
+            var card = document.createElement("div");
+            card.className = "card";
+            card.style = "min-height:120px";
+            div.appendChild(card);
+
+            var cardBody = document.createElement("div");
+            cardBody.className = "card-body";
+            card.appendChild(cardBody);
+
+            var cardTitle = document.createElement("h6");
+            cardTitle.className = "card-title";
+            cardTitle.innerHTML = fileEntry.shortName + "(" + fileEntry.total + ")";
+            cardBody.appendChild(cardTitle);
+            if (fileEntry.phases) {
+                for (var p = 0; p <= 5; p++) {
+                    var pspan = document.createElement("span");
+                    if (p < 2) {
+                        pspan.className = "ml-1 badge badge-danger";
+                    } else if (p < 4) {
+                        pspan.className = "ml-1 badge badge-warning";
+                    } else {
+                        pspan.className = "ml-1 badge badge-success";
+                    }
+                    cardBody.appendChild(pspan);
+                    pspan.innerHTML = fileEntry.phases[p];
+                    pspan.setAttribute("data-toggle", "tooltip");
+                    pspan.title = "Phase " + p;
+                    log.info("[MW] CARD %s --> %s", p, fileEntry.phases[p]);
+                }
+            } else {
+                log.info("[MW] CARD NO PHASE INFO");
+            }
+
+            var questions = document.createElement("btn");
+            questions.className = "float-right btn btn-sm btn-info";
+            questions.setAttribute("data-toggle", "tooltip");
+            questions.title = "" + fileEntry.phaseRelevant + " Phase Questions are due";
+            questions.innerHTML = fileEntry.phaseRelevant;
+
+
+            var openFile = document.createElement("a");
+            openFile.className = "ml-2 btn btn-sm btn-primary float-right";
+            openFile.innerHTML = "Open"
+            openFile.setAttribute("href", "#");
+            cardBody.appendChild(openFile);
+            cardBody.appendChild(questions);
+
+            openFile.addEventListener("click", function () {
+                log.info("[MW] About to load %s", fileEntry.fileName);
+                ipcRenderer.send("test:loadFile", fileEntry);
+            });
+
+            // add listener
+            return div;
+        }
 
         function showTest() {
             log.debug('[MW] show tests ..');
@@ -271,19 +340,35 @@
             translationElement.focus();
         }
 
+        //  clear filestats entries
+        ipcRenderer.on('filestats:clear', function (e, entry) {
+            log.info("[MW] Filestats " + enrty);
+            fileStructurElement.innerHTML = ""; // remove all
+        });
+
+        //  show new filestats entry
+        ipcRenderer.on('filestats:newEntry', function (e, entry) {
+            log.info(entry);
+            var div = createFileCard(entry);
+            fileStructurElement.appendChild(div);
+            log.debug("[MW] Filestats added entry ");
+        });
 
         //  show file info
-        ipcRenderer.on('test:fileInfo', function (e, vData) {
-            log.info('[MW] test:fileInfo vData: %s', vData.hasError);
-            //    log.info(vData.parseErrors);
-            log.info('[MW] test:fileName: %s / %s', vData.fileName, vData.fullPath);
-            fileInfoElement.innerHTML = "Vocabulary: " + vData.fileName + " (" + vData.size + ")";
-            //vData.printInfo();
+        ipcRenderer.on('test:fileInfo', function (e, vocTest) {
+            //   log.info(vocTest);
+            log.debug('[MW] test:fileInfo vocTest Size: %s, Fehler: %s', vocTest.fileContent._entries.length,
+                vocTest.fileContent.hasError);
+            //    log.debug(vocTest.parseErrors);
+            log.debug('[MW] test:short/ fileName: %s / %s', vocTest.shortName, vocTest.fileName);
+            fileInfoElement.innerHTML = "Vocabulary: " + vocTest.shortName + " (" + vocTest.fileContent._entries
+                .length + ")";
+            //vocTest.printInfo();
             // set main display fr file info
-            if (vData.hasError) {
-                parseErrorsList = vData.parseErrors;
+            if (vocTest.fileContent.hasError) {
+                parseErrorsList = vocTest.fileContent.parseErrors;
                 showParseErrorsButton.className = "btn btn-danger";
-                showParseErrorsCountElement.innerHTML = vData.parseErrors.length;
+                showParseErrorsCountElement.innerHTML = vocTest.fileContent.parseErrors.length;
             } else {
                 parseErrorsList = [];
                 showParseErrorsButton.className = "btn btn-success";
@@ -291,13 +376,13 @@
                 // popup data remember data for later
             }
             // display phases
-            phase0.innerHTML = vData.phaseStats[0];
-            phase1.innerHTML = vData.phaseStats[1];
-            phase2.innerHTML = vData.phaseStats[2];
-            phase3.innerHTML = vData.phaseStats[3];
-            phase4.innerHTML = vData.phaseStats[4];
-            phase5.innerHTML = vData.phaseStats[5];
-            phaseQuestions.innerHTML = vData.phaseIndices.length;
+            phase0.innerHTML = vocTest.phaseStats[0];
+            phase1.innerHTML = vocTest.phaseStats[1];
+            phase2.innerHTML = vocTest.phaseStats[2];
+            phase3.innerHTML = vocTest.phaseStats[3];
+            phase4.innerHTML = vocTest.phaseStats[4];
+            phase5.innerHTML = vocTest.phaseStats[5];
+            phaseQuestions.innerHTML = vocTest.phaseIndices.length;
 
         });
 
@@ -331,7 +416,7 @@
                 if (testRun.type == "DE" && speechActiveCheckBox.checked) {
                     say.speak(testRun.correctTranslations[0]); // there is always only one
                 }
-                log.info('[MW] test:result Wrong : %s', correctTranslationsText);
+                log.debug('[MW] test:result Wrong : %s', correctTranslationsText);
             }
             errorElement.appendChild(spanElement);
         });
@@ -390,7 +475,7 @@
         showParseErrorsButton.addEventListener('click', closeForm);
 
         function closeForm() {
-        
+
             var errors = "";
             if (parseErrorsList && parseErrorsList.length > 0) {
                 errors = '<ul class="list-group">';

@@ -13,7 +13,7 @@ html body {
 html body .container-fluid.body-content {
   position: absolute;
   top: 50px;
-  bottom: 30px;
+  bottom: 0px;
   padding: 10px;
   right: 0;
   left: 0;
@@ -36,7 +36,7 @@ footer {
   right: 0;
   bottom: 0;
   background-color: #4C4;
-  height: 60px;
+  height: 70px;
 }
 
 .deleted-row {
@@ -44,5 +44,14 @@ footer {
 }
 
 .keyvisual {
- top: 100px;
+  top: 100px;
+  height: 200px;
+}
+
+.vocabulary-keyvisual {
+  max-width: 734px;
+  max-height: 200px;
+  margin: 0 auto;
+  display: inherit;
+  /* keine Ahnung wieso das zentriert */
 }

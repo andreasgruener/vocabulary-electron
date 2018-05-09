@@ -2,9 +2,12 @@ const electron = require('electron');
 const url = require('url');
 const path = require('path');
 const Store = require('./Store.js');
+const VocTest = require('./assets/js/VocTest.js');
+const FolderStructure = require('./assets/js/FolderStructure.js');
 const log = require('electron-log');
 
-
+var currentVocTest;
+log.transports.console.level = 'info';
 
 const username = require('username');
 var currentUser = "unknown";
@@ -15,9 +18,10 @@ username().then(username => {
 // local utility classes
 var mail = require('./assets/js/Mail.js');
 var mqtt = require('./assets/js/MQTT.js');
-var vData = require('./assets/js/VocabularyData.js');
-var VocabularyTest = require('./assets/js/VocabularyTest.js');
-var language = VocabularyTest.ENGLISH; // used for storiny card information
+//var vData = require('./assets/js/VocabularyData.js');
+//var VocabularyTest = require('./assets/js/VocabularyTest.js');
+
+//var language = VocabularyTest.ENGLISH; // used for storiny card information
 
 
 const {
@@ -110,44 +114,57 @@ app.on('ready', function () {
     // loadLastFile();
 
     // mqtt.publish(VocabularyTestData);
+
+
 });
 
 function nextVocabulary() {
-    var entry = VocabularyTest.next();
+    var entry = currentVocTest.next();
     log.info("[MAIN] Next vocabulary ");
-    if (VocabularyTest.rerun) {
+    if (currentVocTest.rerun) {
         log.info("[MAIN] RERUN You got wrong answers");
-        entry = VocabularyTest.nextRerun();
+        entry = currentVocTest.nextRerun();
     }
 
     if (entry) {
         log.info("[MAIN] Entry");
-        if (VocabularyTest.rerun && VocabularyTest.currentWrongIndex == 1) {  // display info the first entry if rerun
+        if (currentVocTest.rerun && currentVocTest.currentWrongIndex == 1) {  // display info the first entry if rerun
             log.info("[MAIN] RERUN INFO");
-            mainWindow.send("test:showWrongAnswers", VocabularyTest); // calls display after dismissal
+            mainWindow.send("test:showWrongAnswers", currentVocTest); // calls display after dismissal
         } else {
-            mainWindow.webContents.send("test:display", VocabularyTest);
+            mainWindow.webContents.send("test:display", currentVocTest);
         }
         log.info("[MAIN] Test Display");
         return true;
     } else {
         log.info("[MAIN] Test over");
-        VocabularyTest.calcGrade();
-        log.debug(VocabularyTest);
-        VocabularyTest.user = currentUser;
-        mail.sendMail(VocabularyTest);
-        mqtt.publish(VocabularyTest);
+        currentVocTest.calcGrade();
+        currentVocTest.user = currentUser;
+        mail.sendMail(currentVocTest);
+        mqtt.publish(currentVocTest);
         log.debug("[MAIN] MAIL SEND -- Test over");
-        mainWindow.webContents.send("test:over", VocabularyTest);
+        mainWindow.webContents.send("test:over", currentVocTest);
 
         // save due to phase based questions
         log.debug("[MAIN] data:saveEdit ");
         //log.debug(vDataSave);
-        vData.data.forEach(function (element) {
-            log.info(" " + element.lastAsked + " " + element.phase + " " + element.word + " = " + element.translation);
-        });
-        vData.save(loadFile);
+        currentVocTest.save().then(function (result, reject) {
+            log.info("[MAIN] Saved File Callback");
+            loadFile(currentVocTest.fileName); // reload data
+        }); // save the new phases
         log.debug("[MAIN] test:run END");
+       //  not working yet
+        // var folders = new FolderStructure({
+        //     rootDir: "/Users/andreas_gruener/Dropbox/devel/electronjs/vocabulary/example"
+        // });
+        // mainWindow.webContents.send("filestats:clear");
+        // folders.check(function (fileEntry) {
+
+        //     fileEntry.printStatus();
+        //     log.info("[MAIN] *** PROGRAM READY -- CHECK DONE");
+        //     mainWindow.webContents.send("filestats:newEntry", fileEntry);
+
+        // });
 
         return false;
 
@@ -156,9 +173,13 @@ function nextVocabulary() {
 
 function loadFile(fileName) {
     log.info("[M] Load File " + fileName);
-    vData.load(fileName).then(function (result) {
-        VocabularyTest.setVocabulary(vData);
-        mainWindow.webContents.send("test:fileInfo", vData);
+    currentVocTest = new VocTest({
+        fileName: fileName
+    });
+    currentVocTest.printStatus();
+    currentVocTest.load().then(function () {
+        log.info("[M] Load File Callback " + currentVocTest.fileContent.entries.length);
+        mainWindow.webContents.send("test:fileInfo", currentVocTest);
     });
 }
 
@@ -178,16 +199,19 @@ ipcMain.on('data:showEdit', function (e) {
 
 
 // Show Edit Window
-ipcMain.on('data:save', function (e, vDataSave) {
+ipcMain.on('data:save', function (e, editedEntries) {
     log.debug("[MAIN] data:saveEdit ");
     //log.debug(vDataSave);
-    vDataSave.data.forEach(function (element) {
+    editedEntries.forEach(function (element) {
         log.debug(" " + element.deleted + " " + element.changed + " " + element.word + " = " + element.translation);
     });
-    vData.data = vDataSave.data;
-    vData.save(loadFile); // callback to load file after saving
+    currentVocTest.fileContent.entries = editedEntries;
+    currentVocTest.save().then(function (result, reject) {
+        log.info("[MAIN] Saved File Callback");
+        loadFile(currentVocTest.fileName); // reload data
+    }); //
     editWindow.close(); // close the edit window
-  
+
     log.debug("[MAIN] test:run END");
 });
 
@@ -195,7 +219,7 @@ ipcMain.on('data:save', function (e, vDataSave) {
 ipcMain.on('test:run', function (e, count, type) {
     log.info("[MAIN] *** test:run cnt=%s type=%s", count, type);
     targetCount = count;
-    VocabularyTest.start(targetCount, type);
+    currentVocTest.start(targetCount, type);
     nextVocabulary();
     log.debug("[MAIN] test:run END");
 });
@@ -203,11 +227,16 @@ ipcMain.on('test:run', function (e, count, type) {
 // Catch test:answer
 ipcMain.on('test:answer', function (e, checkEntry) {
     log.debug("[MAIN] test:answer %s/%s", checkEntry.word, checkEntry.translation);
-    VocabularyTest.check(checkEntry);
-    mainWindow.webContents.send("test:result", VocabularyTest);
+    currentVocTest.check(checkEntry);
+    mainWindow.webContents.send("test:result", currentVocTest);
     // get next vocabulary and sent it with current stats
     nextVocabulary();
     log.debug("[MAIN] test:answer END");
+});
+
+ipcMain.on('test:loadFile', function (e, fileEntry) {
+    log.info("[MAIN]  Loading FILE" + fileEntry.fileName);
+    loadFile(fileEntry.fileName);
 });
 
 // 
@@ -226,11 +255,7 @@ ipcMain.on('test:load', function (e, item) {
             const fileName = fileNames[0];
             const fileDir = path.parse(fileName).dir;
             try {
-                vData.load(fileName).then(function (result, reject) {
-                    VocabularyTest.setVocabulary(vData);
-                    mainWindow.webContents.send("test:fileInfo", vData);
-                    store.set('vocabularyFileName', vData.fullPath);
-                });
+                loadFile(fileName);
             } catch (err) {
                 vData.hasError = true;
                 var parseError = {
@@ -240,28 +265,39 @@ ipcMain.on('test:load', function (e, item) {
                     spellingError: false,
                     error: "File not found: " + fn
                 };
-                vData.parseErrors.push(parseError);
+                // VocTest.push(parseError);
                 // log.debug(this.parseErrors);
                 myself.hasError = true;
                 mainWindow.webContents.send("test:fileInfo", vData);
             }
         });
-    VocabularyTest.setVocabulary(vData);
-    mainWindow.webContents.send("test:fileInfo", vData);
+
     log.debug("[MAIN] test:load END");
 });
 
 
 // check if we have a vocabulary file to open from user preferences
 ipcMain.on('program:ready', function () {
-    if (vData.fileLoaded()) {
+
+    var folders = new FolderStructure({
+        rootDir: "/Users/andreas_gruener/Dropbox/devel/electronjs/vocabulary/example"
+    });
+    folders.check(function (fileEntry) {
+
+        fileEntry.printStatus();
+        log.info("[MAIN] *** PROGRAM READY -- CHECK DONE");
+        mainWindow.webContents.send("filestats:newEntry", fileEntry);
+
+    });
+
+    if (currentVocTest) {
         log.debug("[MAIN:READY] Tried to reload");
     } else {
         var lastFile = store.get('vocabularyFileName');
         loadFile(lastFile);
-
     }
     log.debug("[MAIN:READY] END");
+    //  editWindow.webContents.send("data:fileInfo", currentVocTest);
 });
 
 
@@ -296,9 +332,10 @@ function createNewWindow() {
 
 // Show Edit Window
 ipcMain.on('edit:ready', function (e) {
-    log.debug("[MAIN] edit:ready ");
-    editWindow.webContents.send("data:fileInfo", vData);
-    log.debug("[MAIN] edit:ready");
+    log.info("[MAIN] edit:ready ");
+    currentVocTest.printStatus();
+    editWindow.webContents.send("data:fileInfo", currentVocTest);
+    log.info("[MAIN] edit:ready");
 });
 
 
