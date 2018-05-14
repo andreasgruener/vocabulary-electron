@@ -12,8 +12,8 @@ class Entry {
         this.phase = opts.phase;
         this.lastAsked = opts.lastAsked;
         this.deleted = opts.deleted;
-        this.changed = false,
-            this.translations = []
+        this.changed = false;
+        this.translations = opts.translations;
     }
     printStatus() {
         log.debug("  [ENTRY] P=%s LAST=%s D=%s C=%s %s-->%s Translations=%s",
@@ -156,8 +156,8 @@ class VocTest {
                     myself.fileContent.entries = resultEntries;
                     myself.initPhase();
                     myself.printStatus();
-                   // resolve("File Loaded");
-                   resolve(myself);
+                    // resolve("File Loaded");
+                    resolve(myself);
                 }).catch((error) => {
                     log.error("[VocTest] Load File failed " + error);
                 });
@@ -199,12 +199,11 @@ class VocTest {
                 this.phaseIndices.push(i);
                 this.phaseRelevant++;
                 log.debug("[VocTest::INITPHASE]P # 0 # Adding Phase=%s Days=%s (Delay=%s)", entry.phase, lastAskedDelta, daysPhase[entry.phase]);
-            } else if ( !entry.phase ) {
+            } else if (!entry.phase) {
                 this.phaseIndices.push(i);
                 this.phaseRelevant++;
                 log.debug("[VocTest::INITPHASE]P # 0 # NO Phase Info Phase=%s Days=%s (Delay=%s)", entry.phase, lastAskedDelta, daysPhase[entry.phase]);
-            }
-            else {
+            } else {
                 log.debug("[VocTest::INITPHASE]P # 0 # Skipping Phase=%s Days=%s (Delay=%s)", entry.phase, lastAskedDelta, daysPhase[entry.phase]);
             }
             this.phaseStats[entry.phase] = this.phaseStats[entry.phase] + 1;
@@ -248,6 +247,7 @@ class VocTest {
         for (var i = 0; i < this.phaseRelevant; i++) {
             this.remainingIndices.push(this.phaseIndices[i]);
             log.debug("[VocTest] P " + this.fileContent.entries[this.phaseIndices[i]].phase);
+            log.debug(this.fileContent.entries[this.phaseIndices[i]]);
         }
         this.targetCount = c;
         this.type = t;
@@ -313,6 +313,7 @@ class VocTest {
         var answered = this.wrongAnswers.length + this.correctAnswers.length;
         log.debug("[VocTest] Check for more :: ( answered: %s >=  total: %s )  OR ( %s <= 0 ) :: target: %s (multiple translations per entry)", answered, this.targetCount, this.remainingIndices.length, this.targetCount);
 
+        // check if out of vocabulary...
         if (this.remainingIndices.length <= 0 ||  
             answered >= this.targetCount) {
             log.warn("[VocTest] all vocabualry asked %s - %s of %s", this.total, this.remainingIndices.length, this.targetCount);
@@ -321,10 +322,15 @@ class VocTest {
             this.rerun = this.wrongRunRequired; // set the if required the rerun mode
             return;
         }
+        // pick a random remaining entry
         var random = Math.floor(Math.random() * Math.floor(this.remainingIndices.length));
         this.currentIndex = this.remainingIndices[random];
 
+        // get entry
         var entry = this.fileContent.entries[this.currentIndex];
+        log.debug(">>>> [VocTest] ASKING .....");
+        log.debug(entry);
+        log.debug("<<<<< [VocTest] ASKING .....");
         var multiTransCount = entry.translations.length;
         var exitingMultitrans = this.askedMultitranslations[this.currentIndex];
         //   log.debug(entry.translations);
@@ -332,6 +338,7 @@ class VocTest {
         if (this.type == "EN") {
             entry.ask = entry.word;
             this.remainingIndices.splice(random, 1);
+
         } else if (this.type == "DE") {
 
 
@@ -387,7 +394,7 @@ class VocTest {
     check(check) {
         this.currentCount++;
         // var askedEntry = {};
-
+        log.debug(this.currentEntry);
         if (this.type == "EN") {
             check.correct_translations = this.currentEntry.translations;
         } else {
@@ -395,7 +402,23 @@ class VocTest {
         }
 
         log.debug("[VT] To check %s / %s --> correct: %s ( %s/%s )", check.word_displayed, check.translation_entered, check.correct_translation, this.currentEntry.word, this.currentEntry.translation);
-        if (check.correct_translations.includes(check.translation_entered)) {
+        log.debug(check.correct_translations);
+        var enteredAsArray = check.translation_entered.split(":").sort();
+        var allCorrect = true;
+        for ( var eaa =0; eaa<enteredAsArray.length; eaa++) {
+           
+            if ( check.correct_translations.includes(enteredAsArray[eaa])) {
+                log.debug("  +++  %s is in %s", enteredAsArray[eaa], check.correct_translations);
+            } else {
+                allCorrect = false;
+                log.debug("  ---  %s is NOT in %s", enteredAsArray[eaa], check.correct_translations);
+            }
+        }
+        if ( enteredAsArray.length != check.correct_translations.length ) {
+            log.debug("  ---  Wrong #answers %s != %s", enteredAsArray.length, check.correct_translations.length);
+            allCorrect = false;
+        }
+        if (allCorrect) {
             this.correct++;
             this.answerIsCorrect = true;
 
@@ -425,6 +448,8 @@ class VocTest {
 
             if (!this.rerun) {
                 this.wrongAnswers.push(check);
+               
+
                 this.wrongIndex.push(this.currentIndex); // remember the index asked
                 this.correctTranslations = check.correct_translations;
             }
@@ -640,7 +665,7 @@ function specialParse(data, fileContent) {
             fileContent.parseErrors.push(spellError);
         }
         //     log.debug(entry);
-        // entry.printStatus();
+        entry.printStatus();
         entriesList.push(entry);
         //log.debug("[VocTest] VOC: has  %s", fileContent.data.length);
     }
