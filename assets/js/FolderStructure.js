@@ -123,6 +123,7 @@ var walk = function (dir, done) {
                 } else {
                     if (file.endsWith(".csv")) {
                         results.push(file);
+                        results = results.sort();
                         log.debug("[FStruct] FOUND %s", file);
                     }
                     next();
