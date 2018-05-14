@@ -165,18 +165,7 @@ function nextVocabulary() {
             loadFile(currentVocTest.fileName); // reload data
         }); // save the new phases
         log.debug("[MAIN] test:run END");
-        //  not working yet
-        // var folders = new FolderStructure({
-        //     rootDir: "/Users/andreas_gruener/Dropbox/devel/electronjs/vocabulary/example"
-        // });
-        // mainWindow.webContents.send("filestats:clear");
-        // folders.check(function (fileEntry) {
-
-        //     fileEntry.printStatus();
-        //     log.info("[MAIN] *** PROGRAM READY -- CHECK DONE");
-        //     mainWindow.webContents.send("filestats:newEntry", fileEntry);
-
-        // });
+      
 
         return false;
 
@@ -192,6 +181,7 @@ function loadFile(fileName) {
     currentVocTest.load().then(function () {
       //  log.info("[M] Load File Callback " + currentVocTest.fileContent.entries.length);
         mainWindow.webContents.send("test:fileInfo", currentVocTest);
+        store.set('vocabularyFileName', fileName);
     });
 }
 
