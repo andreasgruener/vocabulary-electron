@@ -78,7 +78,7 @@ function getInfoMail(testData) {
         "Vokabeln:\t" + testData.targetCount + "\n" +
         "Davon Falsch:\t\t" + testData.error + "\n" +
         "Abfrageart:\t\t" + testData.type + "\n" +
-        "Vokabeldatei\t\t" + testData.file + "\n" +
+        "Vokabeldatei\t\t" + testData.fileName + "\n" +
         "\n";
 
     info = info + "\nFalsch beantwortet:" + falscheFragenText + "\n\n\nRichtig beantwortet: " + richtigeFragenText
