@@ -14,8 +14,8 @@ const Settings = require('./Settings.js');
 log.debug("***********************");
 
 function sendMailInternal(testRunData) {
-	return;
-	log.debug("--- MAIL --- Connected");
+
+	log.info("--- MAIL --- Connected");
 	log.warn("******** SETTINGS " + Settings.MAIL_PASSWORT );
     let transporter = nodemailer.createTransport({
         host: Settings.MAIL_HOST,
@@ -51,7 +51,7 @@ function sendMailInternal(testRunData) {
         if (error) {
             return log.error(error);
         }
-        log.log('Message sent: %s', info.messageId);
+        log.info('Message sent: %s', info.messageId);
         // Preview only available when sending through an Ethereal account
         log.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
 
