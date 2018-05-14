@@ -80,7 +80,7 @@
                                     </div>
                                     <div class="col-6">
                                         <input id="vocabulary-translation" size="30" class="form-control" placeholder="..type it here .." autofocus>
-                                        <small id="emailHelp" class="form-text text-muted">Provide the translation and press Return or submit.</small>
+                                        <small id="emailHelp" class="form-text text-muted">Provide the translation use colon for multiple Translations see info in [].</small>
                                     </div>
                                     <div class="col-3">
                                         <button type="submit" class="btn btn-primary">Submit</button>
@@ -325,7 +325,12 @@
         function displayQuestion(testRun) {
             log.debug('[MW] test:display');
             log.debug(testRun);
-            wordElement.innerHTML = testRun.currentEntry.ask;
+            if (testRun.type == "EN" && testRun.currentEntry.translations.length > 1 ) {
+                wordElement.innerHTML = testRun.currentEntry.ask + " [" + testRun.currentEntry.translations.length +
+                    "]";
+            } else {
+                wordElement.innerHTML = testRun.currentEntry.ask;
+            }
             wordElement.className = "animated fadeInLeft";
             var remaining = testRun.targetCount - testRun.correct - testRun.error;
             testRemainingElement.innerHTML = remaining;
@@ -532,9 +537,9 @@
                 confirmButtonText: 'Speichern'
             }).then((result) => {
                 if (result.value) {
-                   
-                   log.debug(result.value);
-                   ipcRenderer.send("settings:folder", result.value);
+
+                    log.debug(result.value);
+                    ipcRenderer.send("settings:folder", result.value);
                 }
                 log.debug(result);
             });
