@@ -88,7 +88,7 @@ function parseCSV(fileName) {
             result.size = activeVocabulary.length;
 
             log.info("****** Parsed End");
-            fileLoaded(result)
+            fileLoaded(result);
         });
 
         // mainWindow.webContents.
@@ -162,6 +162,6 @@ function fileLoaded(result) {
     }
     //log.debug(stats.fil);
     // store last file if it was read successfull
-    store.set('vocabularyFileName', result.fileName);
+   // store.set('vocabularyFileName', result.fileName);
     sendStats();
 }
