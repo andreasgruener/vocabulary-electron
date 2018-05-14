@@ -16,7 +16,7 @@ class FileEntry {
         this.total = opts.total;
     }
     printStatus() {
-        log.info("[FEST] Name=%s, TOTAL_QUESTIONS=%s, PhaseRelevent=%s Phases: %s - %s - %s - %s - %s - %s ",
+        log.info("[FE] Name=%s, TOTAL_QUESTIONS=%s, PhaseRelevant=%s Phases: %s - %s - %s - %s - %s - %s ",
             this.fileName, this.total,this.phaseRelevant, this.p0, this.p1, this.p2, this.p3, this.p4, this.p5);
     }
 }

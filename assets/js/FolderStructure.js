@@ -24,21 +24,21 @@ class FolderStructure {
 
             myself.fileList = results;
             var fileCount = results.length;
-            log.info("[FOST] ABOUT TO CHECK FILE LIST LENGTH=%s", myself.fileList);
+            log.debug("[FOST] ABOUT TO CHECK FILE LIST LENGTH=%s", myself.fileList);
             // found entries
             if (myself.fileList) {
                 for (var l = 0; l < myself.fileList.length; l++) {
                    
-                    log.info("[FOST] CHECK FILE LIAT in %s from %s", l, myself.fileList[l]);
+                    log.debug("[FOST] CHECK FILE LIAT in %s from %s", l, myself.fileList[l]);
                     
                     var vocTest = new VocTest({
                         fileName: myself.fileList[l]
                     });
                     vocTest.load().then(function (resolve, reject) {
-                        log.info("  [FOST LOAD] **** NAME=" + resolve.fileName);
+                        log.debug("  [FOST LOAD] **** NAME=" + resolve.fileName);
                       
                         vocTest.initPhase();
-                        log.info("  [FOST LOAD] PHASE 0=" + resolve.phaseStats);
+                        log.debug("  [FOST LOAD] PHASE 0=" + resolve.phaseStats);
                         var fe = new FileEntry({
                             shortName: resolve.shortName,
                             fileName: resolve.fileName,
@@ -53,12 +53,12 @@ class FolderStructure {
                             total: resolve.size
                         });
                         fe.phases = Array.from(resolve.phaseStats);
-                        log.info("  [FOST LOAD] PHASES TOTAL=%s Details= "+ fe.phaseRelevant,fe.phases);
+                        log.debug("  [FOST LOAD] PHASES TOTAL=%s Details= "+ fe.phaseRelevant,fe.phases);
                         myself.phaseList.push(fe);
-                        fe.printStatus();
-                        log.info("  [FOST LOAD] CALLBACK");
+                     //   fe.printStatus();
+                        log.debug("  [FOST LOAD] CALLBACK");
                         callback(fe);
-                        log.info("  [FOST LOAD] CALLBACK DONE");
+                        log.debug("  [FOST LOAD] CALLBACK DONE");
 
                     });
                 }
@@ -71,15 +71,15 @@ class FolderStructure {
 
 
     printStatus() {
-        log.info("[FOST] rootDir %s", this.rootDir);
+        log.debug("[FOST] rootDir %s", this.rootDir);
         if (this.phaseList) {
             for (var l = 0; l < this.phaseList; l++) {
                 var fe = this.phaseList[l];
-                log.info(fe);
+                log.debug(fe);
                 fe.printStatus();
             }
         } else {
-            log.info("[FOST] No Files found");
+            log.debug("[FOST] No Files found");
         }
     }
 
@@ -98,7 +98,7 @@ function walkMain(dir, callback) {
 }
 
 function checkFolderStructureInternal(rootDir) {
-    log.info("[FStruct] rootDir=%s", rootDir);
+    log.debug("[FStruct] rootDir=%s", rootDir);
     walk(rootDir, function (err, results) {
         if (err) throw err;
         console.log(results);
@@ -123,7 +123,7 @@ var walk = function (dir, done) {
                 } else {
                     if (file.endsWith(".csv")) {
                         results.push(file);
-                        log.info("[FStruct] FOUND %s", file);
+                        log.debug("[FStruct] FOUND %s", file);
                     }
                     next();
                 }

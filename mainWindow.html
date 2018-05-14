@@ -6,7 +6,6 @@
 <link rel="stylesheet" href="assets/css/colors.css">
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css">
-
 </head>
 
 <body>
@@ -20,7 +19,7 @@
             <div class="col-lg-12 keyvisual row">
                 <img class="card-img-top text-center vocabulary-keyvisual" src="assets/images/vocabulary.jpg" alt="Card image cap">
             </div>
-            <div >
+            <div>
 
                 <div id="fileStructure" class="row">
                     <!-- file parser result added here-->
@@ -113,6 +112,9 @@
             <div class="row">
                 <div class="col-7">
                     <div id="fileInfoElement">No File Information</div>
+                    <button id="settingsButton" class='btn btn-lg ' style='background-color:transparent;'>
+                        <image src="assets/images/settings.png"></image>
+                    </button>
                     <button id="editData" class="btn btn-default">Edit ..</button>
                     <button id="loadFileButton" class="btn btn-primary">Load File ...</button>
                     <button id="showParseErrors" type="button" class="btn btn-danger">
@@ -193,6 +195,7 @@
         // Buttons
         const runTestButton = document.querySelector('#runtest');
         const editDataButton = document.querySelector('#editData');
+        const settingsButton = document.querySelector('#settingsButton');
         const runTestCountElement = document.querySelector('#runtestcount');
         const runTestTypeElement = document.querySelector('#runtesttype');
         const loadFileButton = document.querySelector('#loadFileButton');
@@ -264,10 +267,10 @@
                     pspan.innerHTML = fileEntry.phases[p];
                     pspan.setAttribute("data-toggle", "tooltip");
                     pspan.title = "Phase " + p;
-                    log.info("[MW] CARD %s --> %s", p, fileEntry.phases[p]);
+                    log.debug("[MW] CARD %s --> %s", p, fileEntry.phases[p]);
                 }
             } else {
-                log.info("[MW] CARD NO PHASE INFO");
+                log.debug("[MW] CARD NO PHASE INFO");
             }
 
             var questions = document.createElement("btn");
@@ -285,7 +288,7 @@
             cardBody.appendChild(questions);
 
             openFile.addEventListener("click", function () {
-                log.info("[MW] About to load %s", fileEntry.fileName);
+                log.debug("[MW] About to load %s", fileEntry.fileName);
                 ipcRenderer.send("test:loadFile", fileEntry);
             });
 
@@ -342,13 +345,13 @@
 
         //  clear filestats entries
         ipcRenderer.on('filestats:clear', function (e, entry) {
-            log.info("[MW] Filestats " + enrty);
+            log.debug("[MW] Filestats " + enrty);
             fileStructurElement.innerHTML = ""; // remove all
         });
 
         //  show new filestats entry
         ipcRenderer.on('filestats:newEntry', function (e, entry) {
-            log.info(entry);
+            log.debug(entry);
             var div = createFileCard(entry);
             fileStructurElement.appendChild(div);
             log.debug("[MW] Filestats added entry ");
@@ -356,7 +359,7 @@
 
         //  show file info
         ipcRenderer.on('test:fileInfo', function (e, vocTest) {
-            //   log.info(vocTest);
+            //   log.debug(vocTest);
             log.debug('[MW] test:fileInfo vocTest Size: %s, Fehler: %s', vocTest.fileContent._entries.length,
                 vocTest.fileContent.hasError);
             //    log.debug(vocTest.parseErrors);
@@ -423,7 +426,7 @@
 
         // show over
         ipcRenderer.on('test:over', function (e, testRun) {
-            log.info('[MW] test:over Got result ');
+            log.debug('[MW] test:over Got result ');
             endTest();
             var successMessage = "You did a test with <br/><span class='text-primary'>" + testRun.targetCount +
                 " words</span> , you made <br/><span class='text-danger'>" + testRun.error +
@@ -518,6 +521,24 @@
             ipcRenderer.send("data:showEdit");
         }
 
+        settingsButton.addEventListener('click', askScanFolder);
+
+        function askScanFolder() {
+            swal({
+                title: 'Auswahl Vokabel Datei Ordner',
+                text: 'Bitte Ordner eingeben (bspw. /Users/greta/vocabulary):',
+                type: 'info',
+                input: 'text',
+                confirmButtonText: 'Speichern'
+            }).then((result) => {
+                if (result.value) {
+                   
+                   log.debug(result.value);
+                   ipcRenderer.send("settings:folder", result.value);
+                }
+                log.debug(result);
+            });
+        }
         // submit answer
         form.addEventListener('submit', function () {
 
@@ -527,7 +548,7 @@
                 translation_entered: translationElement.value
                 //   correct_translations: "" // set in check function
             };
-            log.info('[MW] Submitting %s/%s', check.word_displayed, check.translation_entered);
+            log.debug('[MW] Submitting %s/%s', check.word_displayed, check.translation_entered);
             ipcRenderer.send("test:answer", check);
 
             testErrorElement.className = "badge badge-danger right";
@@ -564,17 +585,17 @@
         //     const ENGLISH = "english";
         //     const LATEIN = "latein";
         //     if (result.value) {
-        //         log.info("Picked ENGLISH");
+        //         log.debug("Picked ENGLISH");
         //         ipcRenderer.send("test:language", ENGLISH);
         //     } else if (result.dismiss === swal.DismissReason.cancel) {
-        //         log.info("Picked LATIN");
+        //         log.debug("Picked LATIN");
         //         ipcRenderer.send("test:language", LATEIN);
         //     }
         // })
 
 
         ipcRenderer.send("program:ready");
-        log.info('[MW] MainWindow Loaded, JS done ...');
+        log.debug('[MW] MainWindow Loaded, JS done ...');
     </script>
 </body>
 

@@ -45,7 +45,7 @@ class FileContent {
         return csv_string;
     }
     printStatus() {
-        log.info("[VocTest] Name=%s, #Size=%s",
+        log.debug("[VocTest] Name=%s, #Size=%s",
             this.fileName, this.size);
         if (this.entries) {
             for (var e = 0; e < this.entries.length; e++) {
@@ -55,7 +55,7 @@ class FileContent {
     }
     set entries(newEntries) {
         var newList = [];
-        log.info("[VocTest] Setting Entries " + newEntries.length);
+        log.debug("[VocTest] Setting Entries " + newEntries.length);
         for (var e = 0; e < newEntries.length; e++) {
             var entry = new Entry({
                 word: newEntries[e].word,
@@ -69,7 +69,7 @@ class FileContent {
             newList.push(entry);
         }
         this._entries = newList;
-        //   log.info("[VocTest] New Entries " + this.size);
+        //   log.debug("[VocTest] New Entries " + this.size);
     }
     get entries() {
         return this._entries;
@@ -133,26 +133,26 @@ class VocTest {
         return this.fileContent.size;
     }
     printStatus() {
-        log.info("############ VocTest Status ###################");
+        log.debug("############ VocTest Status ###################");
         if (this.fileContent) {
             this.fileContent.printStatus();
         } else {
-            log.info("** NO DATA");
+            log.debug("** NO DATA");
         }
-        log.info("------------ End VocTest Status --------------------\n");
+        log.debug("------------ End VocTest Status --------------------\n");
     }
     load() {
         var myself = this;
         return new Promise(
 
             function (resolve, reject) {
-                log.info("[VocTest] Loading ");
+                log.debug("[VocTest] Loading ");
                 myself.fileContent = new FileContent({
                     fileName: myself.fileName
                 });
 
                 loadInternal(myself.fileContent).then(function (resultEntries) {
-                    //   log.info("[VocTest] Entries %s", resultEntries.length);
+                    //   log.debug("[VocTest] Entries %s", resultEntries.length);
                     myself.fileContent.entries = resultEntries;
                     myself.initPhase();
                     myself.printStatus();
@@ -168,7 +168,7 @@ class VocTest {
         // empty current entry https://stackoverflow.com/questions/1232040/how-do-i-empty-an-array-in-javascript
         this.phaseIndices.length = 0;
         // determine which entries are ready to be asked
-        //  log.info("[VocTest::INITPHASE] P # PHASES ");
+        //  log.debug("[VocTest::INITPHASE] P # PHASES ");
         for (var p = 0; p <= 5; p++) {
             this.phaseStats[p] = 0; // init
         }
@@ -194,23 +194,23 @@ class VocTest {
             // }
 
             var lastAskedDelta = daysDiff(lastAsked, today);
-            // log.info("[VocTest::INITPHASE]P # Phase=%s, Today=%s, LastAsked=%s, Delta=%s", entry.phase, today, lastAsked, lastAskedDelta);
+            // log.debug("[VocTest::INITPHASE]P # Phase=%s, Today=%s, LastAsked=%s, Delta=%s", entry.phase, today, lastAsked, lastAskedDelta);
             if (lastAskedDelta >= daysPhase[entry.phase]) {
                 this.phaseIndices.push(i);
                 this.phaseRelevant++;
-                log.info("[VocTest::INITPHASE]P # 0 # Adding Phase=%s Days=%s (Delay=%s)", entry.phase, lastAskedDelta, daysPhase[entry.phase]);
+                log.debug("[VocTest::INITPHASE]P # 0 # Adding Phase=%s Days=%s (Delay=%s)", entry.phase, lastAskedDelta, daysPhase[entry.phase]);
             } else if ( !entry.phase ) {
                 this.phaseIndices.push(i);
                 this.phaseRelevant++;
-                log.info("[VocTest::INITPHASE]P # 0 # NO Phase Info Adding Phase=%s Days=%s (Delay=%s)", entry.phase, lastAskedDelta, daysPhase[entry.phase]);
+                log.debug("[VocTest::INITPHASE]P # 0 # NO Phase Info Phase=%s Days=%s (Delay=%s)", entry.phase, lastAskedDelta, daysPhase[entry.phase]);
             }
             else {
-                log.info("[VocTest::INITPHASE]P # 0 # Skipping Phase=%s Days=%s (Delay=%s)", entry.phase, lastAskedDelta, daysPhase[entry.phase]);
+                log.debug("[VocTest::INITPHASE]P # 0 # Skipping Phase=%s Days=%s (Delay=%s)", entry.phase, lastAskedDelta, daysPhase[entry.phase]);
             }
             this.phaseStats[entry.phase] = this.phaseStats[entry.phase] + 1;
-            log.info("[VocTest::INITPHASE][VD] P " + this.phaseStats[entry.phase]);
+            log.debug("[VocTest::INITPHASE][VD] P " + this.phaseStats[entry.phase]);
         }
-        log.info("[VocTest::INITPHASE] P # PHASES " + this.phaseStats[0]);
+        log.debug("[VocTest::INITPHASE] P # PHASES " + this.phaseStats[0]);
     }
     save() {
         var myself = this;
@@ -220,7 +220,7 @@ class VocTest {
                 var backupPath = currentPath + ".save";
 
                 fs.rename(currentPath, backupPath, function (err) {
-                    log.info("Create Backup %s and save file %s", backupPath, currentPath)
+                    log.debug("Create Backup %s and save file %s", backupPath, currentPath)
                     if (err) {
                         if (err.code === 'EXDEV') {
                             log.error("Could not move file from %s to %s", currentPath, backupPath);
@@ -232,7 +232,7 @@ class VocTest {
                             log.error("[VocTest] save file failed");
                             return console.log(err);
                         }
-                        log.info("[VocTest] The file %s was saved!", currentPath);
+                        log.debug("[VocTest] The file %s was saved!", currentPath);
                         //      doSomethingWithSavedFile(currentPath); // callback for reload
                         resolve("File Saved");
                     });
@@ -247,28 +247,28 @@ class VocTest {
         // }
         for (var i = 0; i < this.phaseRelevant; i++) {
             this.remainingIndices.push(this.phaseIndices[i]);
-            log.info("[VocTest] P " + this.fileContent.entries[this.phaseIndices[i]].phase);
+            log.debug("[VocTest] P " + this.fileContent.entries[this.phaseIndices[i]].phase);
         }
         this.targetCount = c;
         this.type = t;
         this.started = new Date();
     }
     nextRerun() {
-        log.info("######################## WRONG = %s", this.wrongIndex.length);
+        log.debug("######################## WRONG = %s", this.wrongIndex.length);
         for (var c = 0; c < this.wrongIndex.length; c++) {
 
-            log.info("# Entry Index=%s RealIndex=%s word=%s" + c, this.wrongIndex[c], this.fileContent.entries[this.wrongIndex[c]].word);
+            log.debug("# Entry Index=%s RealIndex=%s word=%s" + c, this.wrongIndex[c], this.fileContent.entries[this.wrongIndex[c]].word);
         }
-        log.info("[VT] RERUN ### CHECK: %s >= %s", this.currentWrongIndex, this.wrongIndex.length);
+        log.debug("[VT] RERUN ### CHECK: %s >= %s", this.currentWrongIndex, this.wrongIndex.length);
         if (this.currentWrongIndex >= this.wrongIndex.length) {
             return;
         }
-        log.info("");
-        log.info("[VT] RERUN ### For type: %s", this.type);
-        log.info("[VT] RERUN Next Vocabulary %s : %s ", this.currentWrongIndex, this.wrongIndex.length);
+        log.debug("");
+        log.debug("[VT] RERUN ### For type: %s", this.type);
+        log.debug("[VT] RERUN Next Vocabulary %s : %s ", this.currentWrongIndex, this.wrongIndex.length);
 
         var answered = this.wrongAnswers.length + this.correctAnswers.length;
-        log.info("[VT] RERUN Check 4 More :: ( answered: %s >=  total: %s )  OR ( %s <= 0 ) :: target: %s (multiple translations per entry)", answered, this.targetCount, this.remainingIndices.length, this.targetCount);
+        log.debug("[VT] RERUN Check 4 More :: ( answered: %s >=  total: %s )  OR ( %s <= 0 ) :: target: %s (multiple translations per entry)", answered, this.targetCount, this.remainingIndices.length, this.targetCount);
 
         this.currentIndex = this.wrongIndex[this.currentWrongIndex];
 
@@ -277,9 +277,9 @@ class VocTest {
 
 
 
-        log.info("########################");
-        //  log.info(entry.translations);
-        log.info("Size %s and type %s", multiTransCount, this.type);
+        log.debug("########################");
+        //  log.debug(entry.translations);
+        log.debug("Size %s and type %s", multiTransCount, this.type);
 
         if (this.type == "EN") {
             entry.ask = entry.word;
@@ -292,12 +292,12 @@ class VocTest {
             }
         }
 
-        log.info("- 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 *+")
-        log.info(this.remainingIndices);
-        log.info(this.askedMultitranslations);
-        log.info("- 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 *+")
+        log.debug("- 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 *+")
+        log.debug(this.remainingIndices);
+        log.debug(this.askedMultitranslations);
+        log.debug("- 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 - 00 *+")
 
-        log.info("[VT] RERUN ***** vocabualry asked  index=%s currentWrongIndex=%s )", this.currentIndex, this.currentWrongIndex);
+        log.debug("[VT] RERUN ***** vocabualry asked  index=%s currentWrongIndex=%s )", this.currentIndex, this.currentWrongIndex);
         //log.debug(this.remainingIndices);
 
         this.currentWrongIndex++;
@@ -311,7 +311,7 @@ class VocTest {
         log.debug("[VocTest] Next Vocabulary %s : %s ", this.currentIndex, this.targetCount);
 
         var answered = this.wrongAnswers.length + this.correctAnswers.length;
-        log.info("[VocTest] Check for more :: ( answered: %s >=  total: %s )  OR ( %s <= 0 ) :: target: %s (multiple translations per entry)", answered, this.targetCount, this.remainingIndices.length, this.targetCount);
+        log.debug("[VocTest] Check for more :: ( answered: %s >=  total: %s )  OR ( %s <= 0 ) :: target: %s (multiple translations per entry)", answered, this.targetCount, this.remainingIndices.length, this.targetCount);
 
         if (this.remainingIndices.length <= 0 ||  
             answered >= this.targetCount) {
@@ -404,9 +404,9 @@ class VocTest {
                 this.currentEntry.phase = parseInt(this.currentEntry.phase) + 1;
                 this.currentEntry.lastAsked = today();
                 check.phase = this.currentEntry.phase;
-                log.info("[VT] P increasing phase %s and setting new date ", this.currentEntry.phase, this.currentEntry.lastAsked);
+                log.debug("[VT] P increasing phase %s and setting new date ", this.currentEntry.phase, this.currentEntry.lastAsked);
             } else {
-                log.info("[VT] P NOT increasing phase due to error before");
+                log.debug("[VT] P NOT increasing phase due to error before");
             }
 
 
@@ -432,14 +432,14 @@ class VocTest {
             this.wrongRunRequired = true; // need to ask the wrong answered questions at the end
 
 
-            log.info("[VT] P decreasing phase %s and setting new date ", this.currentEntry.phase, this.currentEntry.lastAsked);
+            log.debug("[VT] P decreasing phase %s and setting new date ", this.currentEntry.phase, this.currentEntry.lastAsked);
         }
         return this.answerIsCorrect;
     }
     calcGrade() {
         this.finished = new Date();
         this.duration = this.finished.getSeconds() - this.started.getSeconds();
-        log.info("[VT] START " + this.started + " -- " + this.finished);
+        log.debug("[VT] START " + this.started + " -- " + this.finished);
         var percent = (this.error / this.currentCount) * 100
         var gradePercent = percent * 10
         var factor = Math.floor(gradePercent / 75);
@@ -475,7 +475,7 @@ function daysDiff(date1, date2) {
 
 function loadInternal(fileContent) {
     myself = this;
-    log.info("[VocTest] About to load " + fileContent.fileName);
+    log.debug("[VocTest] About to load " + fileContent.fileName);
     return new Promise(
         function (resolve, reject) {
 
@@ -490,13 +490,13 @@ function loadInternal(fileContent) {
                         error: "File not found: " + fileContent.fileName
                     };
                     fileContent.parseErrors.push(parseError);
-                    log.info(this.parseErrors);
+                    log.debug(this.parseErrors);
                     fileContent.hasError = true;
                     //throw new Error("[VocTest] Load File failed " + err);
 
                 }
                 // data is the contents of the text file we just read
-                //  log.info(data);
+                //  log.debug(data);
                 // reject promise
 
                 parse(data, {
@@ -504,7 +504,7 @@ function loadInternal(fileContent) {
                     relax_column_count: true,
                     columns: ['word', 'translation', 'phase', 'lastAsked']
                 }, function (err, output) {
-                    log.info("[VocTest] ****** Parsed Start:");
+                    log.debug("[VocTest] ****** Parsed Start:");
                     // special handling for our format
 
 
@@ -517,11 +517,11 @@ function loadInternal(fileContent) {
                     } else {
                         var entriesList = specialParse(output, fileContent);
 
-                        log.info("[VocTest] ****** Parsed End");
+                        log.debug("[VocTest] ****** Parsed End");
                         // resolve promise
                         // TODO  fileContent.initPhase();
 
-                        // log.info("[VocTest] ****** Phase Init DONE " + entriesList);
+                        // log.debug("[VocTest] ****** Phase Init DONE " + entriesList);
 
                         //     fileContent.printStatus();
                         resolve(entriesList);
@@ -588,7 +588,7 @@ function specialParse(data, fileContent) {
                 spellingError: false,
                 error: "Line " + i + ": Missing Translation, no semicolon"
             };
-            //  log.info("[VocTest] PE: %s / %s", parseError.word, parseError.error);
+            //  log.debug("[VocTest] PE: %s / %s", parseError.word, parseError.error);
             fileContent.parseErrors.push(parseError);
             // log.debug(fileContent.parseErrors);
             fileContent.hasError = true;

@@ -5,6 +5,7 @@ const Store = require('./Store.js');
 const VocTest = require('./assets/js/VocTest.js');
 const FolderStructure = require('./assets/js/FolderStructure.js');
 const log = require('electron-log');
+var rootFolder;
 
 var currentVocTest;
 log.transports.console.level = 'info';
@@ -46,13 +47,11 @@ const store = new Store({
     configName: 'user-preferences',
     defaults: {
         // 800x600 is the default size of our window
-        windowBounds: {
-            width: 1280,
-            height: 800
-        },
+        windowBoundsWidth: 1280,
+        windowBoundsHeight:  800, 
         windowPositionX: 300,
         windowPositionY: 300,
-        vocabularyFileName: ''
+        vocabularyFileName: '',
     }
 });
 
@@ -60,18 +59,21 @@ const store = new Store({
 
 app.on('ready', function () {
     // create new window
-    let {
-        width,
-        height
-    } = store.get('windowBounds');
+    let w = store.get('windowBoundsWidth');
+    let h = store.get('windowBoundsHeight');
     let x = store.get('windowPositionX');
     let y = store.get('windowPositionY');
+    let f = store.get('windowFullScreen');
+  
 
-    log.debug("Loaded pos %s, %s", x, y);
+    log.info("Loaded pos x=%s y=%s -- width=%s, height=%s", x, y, w, h);
+   
     // Pass those values in to the BrowserWindow options
     mainWindow = new BrowserWindow({
-        width,
-        height,
+        width: w,
+        height: h,  
+        fullscreen: f,
+        fullscreenable: true,
         titleBarStyle: 'hiddenInset'
     });
     if (x) {
@@ -79,6 +81,15 @@ app.on('ready', function () {
     } else {
         log.debug("No stored Window position.");
     }
+
+    rootFolder = store.get('rootFolder');
+    if (!rootFolder) {
+        log.error("No root folder set use gear icon to set it. Using default ");
+        rootFolder = app.getAppPath();
+    }
+    log.info("[MAIN] Vocabulary Folder: %s", rootFolder);
+
+
     //load html into window
     mainWindow.loadURL(url.format({
         pathname: path.join(__dirname, 'mainWindow.html'),
@@ -93,10 +104,10 @@ app.on('ready', function () {
     // The BrowserWindow class extends the node.js core EventEmitter class, so we use that API
     // to listen to events on the BrowserWindow. The resize event is emitted when the window size changes.
     mainWindow.on('resize', () => {
-        store.set('windowBounds', {
-            width,
-            height
-        });
+        store.set('windowBoundsWidth', mainWindow.getBounds().width);
+        store.set('windowBoundsHeight', mainWindow.getBounds().height);
+        store.set('windowFullScreen', mainWindow.isFullScreen())
+      //  log.info("Changed" + width)
     });
 
     mainWindow.on('moved', () => {
@@ -110,7 +121,8 @@ app.on('ready', function () {
 
 
     Menu.setApplicationMenu(mainMenu);
-    log.info('Dear %s, yeah. I am ready!', currentUser);
+   // log.info('Dear %s, yeah. I am ready!', currentUser);
+   // log.info("Current pos width=%s, height=%s",  mainWindow.getBounds().height, mainWindow.getBounds().width);
     // loadLastFile();
 
     // mqtt.publish(VocabularyTestData);
@@ -153,7 +165,7 @@ function nextVocabulary() {
             loadFile(currentVocTest.fileName); // reload data
         }); // save the new phases
         log.debug("[MAIN] test:run END");
-       //  not working yet
+        //  not working yet
         // var folders = new FolderStructure({
         //     rootDir: "/Users/andreas_gruener/Dropbox/devel/electronjs/vocabulary/example"
         // });
@@ -172,13 +184,13 @@ function nextVocabulary() {
 }
 
 function loadFile(fileName) {
-    log.info("[M] Load File " + fileName);
+    log.info("[MAIN] Load File " + fileName);
     currentVocTest = new VocTest({
         fileName: fileName
     });
     currentVocTest.printStatus();
     currentVocTest.load().then(function () {
-        log.info("[M] Load File Callback " + currentVocTest.fileContent.entries.length);
+      //  log.info("[M] Load File Callback " + currentVocTest.fileContent.entries.length);
         mainWindow.webContents.send("test:fileInfo", currentVocTest);
     });
 }
@@ -275,17 +287,22 @@ ipcMain.on('test:load', function (e, item) {
     log.debug("[MAIN] test:load END");
 });
 
+ipcMain.on('settings:folder', function (e, path) {
+    log.info("about to Store folder %s", path);
+      store.set('rootFolder', path);
+    log.info("Stored folder %s", store.get('rootFolder'));
+});
+
 
 // check if we have a vocabulary file to open from user preferences
 ipcMain.on('program:ready', function () {
-
+   
     var folders = new FolderStructure({
-        rootDir: "/Users/andreas_gruener/Dropbox/devel/electronjs/vocabulary/example"
+        rootDir: rootFolder
     });
     folders.check(function (fileEntry) {
 
         fileEntry.printStatus();
-        log.info("[MAIN] *** PROGRAM READY -- CHECK DONE");
         mainWindow.webContents.send("filestats:newEntry", fileEntry);
 
     });
