@@ -132,21 +132,20 @@ app.on('ready', function () {
 
 function nextVocabulary() {
     var entry = currentVocTest.next();
-    log.info("[MAIN] Next vocabulary ");
+    log.info("[MAIN] Get next vocabulary ... ");
     if (currentVocTest.rerun) {
         log.info("[MAIN] RERUN You got wrong answers");
         entry = currentVocTest.nextRerun();
     }
 
     if (entry) {
-        log.info("[MAIN] Entry");
         if (currentVocTest.rerun && currentVocTest.currentWrongIndex == 1) {  // display info the first entry if rerun
             log.info("[MAIN] RERUN INFO");
             mainWindow.send("test:showWrongAnswers", currentVocTest); // calls display after dismissal
         } else {
             mainWindow.webContents.send("test:display", currentVocTest);
         }
-        log.info("[MAIN] Test Display");
+        log.debug("[MAIN] Test Display");
         return true;
     } else {
         log.info("[MAIN] Test over");
@@ -154,7 +153,7 @@ function nextVocabulary() {
         currentVocTest.user = currentUser;
         mail.sendMail(currentVocTest);
         mqtt.publish(currentVocTest);
-        log.debug("[MAIN] MAIL SEND -- Test over");
+        log.info("[MAIN] MAIL SEND -- Test over");
         mainWindow.webContents.send("test:over", currentVocTest);
 
         // save due to phase based questions
@@ -173,7 +172,7 @@ function nextVocabulary() {
 }
 
 function loadFile(fileName) {
-    log.info("[MAIN] Load File " + fileName);
+    log.info("[MAIN] Loading File " + fileName);
     currentVocTest = new VocTest({
         fileName: fileName
     });
@@ -278,9 +277,9 @@ ipcMain.on('test:load', function (e, item) {
 });
 
 ipcMain.on('settings:folder', function (e, path) {
-    log.info("about to Store folder %s", path);
+    log.debug("about to Store folder %s", path);
       store.set('rootFolder', path);
-    log.info("Stored folder %s", store.get('rootFolder'));
+    log.debug("Stored folder %s", store.get('rootFolder'));
 });
 
 
@@ -339,10 +338,9 @@ function createNewWindow() {
 
 // Show Edit Window
 ipcMain.on('edit:ready', function (e) {
-    log.info("[MAIN] edit:ready ");
     currentVocTest.printStatus();
     editWindow.webContents.send("data:fileInfo", currentVocTest);
-    log.info("[MAIN] edit:ready");
+    log.debug("[MAIN] edit:ready");
 });
 
 
