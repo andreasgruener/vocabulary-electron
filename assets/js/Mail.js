@@ -116,7 +116,7 @@ function getInfoMailHTML(testData) {
         "<tr><td>Vokabeln:</td><td><b>" + testData.targetCount + "</b></td></tr>" +
         "<tr><td>Davon Falsch:</td><td><b>" + testData.error + "</b></td></tr>" +
         "<tr><td>Abfrageart:</td><td><b>" + testData.type + "</b></td></tr>" +
-        "<tr><td>Vokabeldatei</td><td><b>" + testData.fullPath + "</b></td></tr>" +
+        "<tr><td>Vokabeldatei</td><td><b>" + testData.fileName + "</b></td></tr>" +
         "</table>";
     infoHTML = css + infoHTML + "<h2>Falsch beantwortet:</h2>" + falscheFragenTextHTML + "<h2>Richtig beantwortet:</h2> " + richtigeFragenTextHTML
     return infoHTML;
