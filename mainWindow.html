@@ -422,7 +422,7 @@
                     .word) + " --> correct answer is: " + correctTranslationsText;
                 spanElement.className = "alert alert-danger"; //role="alert"
                 if (testRun.type == "DE" && speechActiveCheckBox.checked) {
-                    say.speak(testRun.correctTranslations[0]); // there is always only one
+                    say.speak(testRun.correctTranslations[0], 'Samantha'); // there is always only one
                 }
                 log.debug('[MW] test:result Wrong : %s', correctTranslationsText);
             }
