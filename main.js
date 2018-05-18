@@ -311,7 +311,7 @@ ipcMain.on('program:ready', function () {
 function createNewWindow() {
     // create new window
     editWindow = new BrowserWindow({
-        width: 1000,
+        width: 1200,
         height: 800,
         titel: 'New',
         // frame:false

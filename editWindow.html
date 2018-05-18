@@ -47,7 +47,7 @@
 
     <div class="container-fluid body-content">
 
-        <table id="editTable" class="TF">
+        <table id="editTable" class="table TF">
             <thead>
 
                 <tr style="display:none">
@@ -153,8 +153,17 @@
             },
             filters_row_index: 1,
             alternate_rows: true,
+            highlight_keywords: true,
+            no_results_message: true,
             rows_counter: true,
             btn_reset: true,
+            responsive: true,
+          //  single_filter: true,
+            // allows Bootstrap table styling
+            col_widths: ['60px', '300px','300px','300px', '60px', '120px', '80px'],
+            themes: [{
+                name: 'transparent'
+            }]
         };
         var editTableFilter = new TableFilter('editTable', filtersConfig);
         editTableFilter.init();
