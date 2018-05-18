@@ -448,11 +448,10 @@ class VocTest {
 
             if (!this.rerun) {
                 this.wrongAnswers.push(check);
-               
-
                 this.wrongIndex.push(this.currentIndex); // remember the index asked
-                this.correctTranslations = check.correct_translations;
+         
             }
+            this.correctTranslations = check.correct_translations;
             log.debug("[VT] WRONG %s", this.correctTranslations);
             this.wrongRunRequired = true; // need to ask the wrong answered questions at the end
 
