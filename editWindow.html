@@ -10,25 +10,74 @@
     <link rel="stylesheet" href="assets/css/app.css">
     <link rel="stylesheet" href="assets/css/colors.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css">
-
+    <link rel="stylesheet" href="node_modules/tablefilter/dist/tablefilter/style/tablefilter.css">
 </head>
 
 <body>
-
     <header class="bg-orange">
         <div class="container">
-            <h1 class="text-center">Edit Data Folder/File</h1>
+
+
+            <div class="row" style="padding-top:10px;">
+                <div class="col-1">
+                    <!--  <div>&nbsp;</div> -->
+
+                </div>
+
+                <div class="col-4">
+                    <!--  <div>&nbsp;</div> -->
+                    <h3>Edit Vocabulary</h3>
+
+                </div>
+                <div class="col-4">
+
+                </div>
+
+                <div class="col-1">
+                    <!--  <div>&nbsp;</div> -->
+                </div>
+                <div class="col-2">
+                    <!--  <div>&nbsp;</div> -->
+
+                </div>
+            </div>
         </div>
     </header>
 
 
     <div class="container-fluid body-content">
-        <table class="table table-striped table-sm">
+
+        <table id="editTable" class="TF">
             <thead>
+
+                <tr style="display:none">
+                    <th>
+                        <input id="flt0_table" type="text" size="5" ct="0" class="flt">
+                    </th>
+                    <th>
+                        <input id="flt1_table" type="text" ct="1" class="flt">
+                    </th>
+                    <th>
+                        <input id="flt2_table" type="text" ct="2" class="flt">
+                    </th>
+                    <th>
+                        <input id="flt3_table" type="text" ct="3" class="flt">
+                    </th>
+                    <th>
+                        <input id="flt4_table" type="text" ct="4" class="flt">
+                    </th>
+                    <th>
+                        <input id="flt5_table" type="text" ct="5" class="flt">
+                    </th>
+                    <th>
+                        <input id="flt6_table" type="text" ct="6" class="flt">
+                    </th>
+
+                </tr>
                 <tr>
                     <th scope="col">Nr</th>
-                    <th scope="col">Foreign</th>
-                    <th scope="col">Translation</th>
+                    <th data-field="foreign" data-filter-control="input" scope="col">Foreign</th>
+                    <th data-field="translation" data-filter-control="input" scope="col">Translation</th>
                     <th scope="col">Error</th>
                     <th scope="col">Phase</th>
                     <th scope="col">Last</th>
@@ -79,6 +128,7 @@
         const log = require('electron-log');
         const swal = require('sweetalert2');
         const VocTest = require('./assets/js/VocTest.js');
+        const TableFilter = require('tablefilter');
         //  const tagsInput = require('tags-input');
 
         // const swal2 = require('swal-forms');
@@ -89,11 +139,26 @@
         const tableContentElement = document.querySelector('#table-body');
         const saveButton = document.querySelector('#saveButton');
         const backButton = document.querySelector('#backButton');
+        const searchField = document.querySelector('#edit_search');
 
         const foreign = document.querySelector('#new-foreign');
         const translation = document.querySelector('#new-translation');
 
         log.info('[EW] START EDIT');
+
+        var filtersConfig = {
+            base_path: 'tablefilter/',
+            auto_filter: {
+                delay: 1100 //milliseconds
+            },
+            filters_row_index: 1,
+            alternate_rows: true,
+            rows_counter: true,
+            btn_reset: true,
+        };
+        var editTableFilter = new TableFilter('editTable', filtersConfig);
+        editTableFilter.init();
+
 
         function changedElement(element) {
             saveButton.disabled = false;
@@ -107,7 +172,7 @@
             translation.value = "";
 
             foreign.addEventListener('keyup', function (event) {
-             
+
                 if (event.key === "Enter") {
                     translation.focus();
                 }
@@ -117,14 +182,14 @@
             });
 
             translation.addEventListener('keyup', function (event) {
-               
+
                 if (event.key === "Enter") {
                     log.info("Add ROW");
                     addRow(foreign.value, translation.value, "0", "");
                     translation.value = "";
                     foreign.value = "";
                     foreign.focus();
-                   // showEditor();
+                    // showEditor();
 
                 }
                 if (event.key === "Escape") {
@@ -151,7 +216,7 @@
                 translations: []
             };
             editedEntries.push(entry);
-            createRow(entry,"-");
+            createRow(entry, "-");
             changedElement(entry, 0);
         }
         /**
@@ -177,7 +242,7 @@
             if (element.lastAsked) {
                 td_lastAsked.innerHTML = element.lastAsked;
             }
-       
+
 
             // remove row
             var td_action = document.createElement("TD");
@@ -215,7 +280,7 @@
             // edit row entries
             // EDIT WORD
             td_word.addEventListener('click', function () {
-           
+
                 var input_element = document.createElement("INPUT");
                 input_element.setAttribute("type", "text");
                 input_element.className = "bg-yellow";
@@ -253,7 +318,7 @@
 
             // EDIT TRANSLATION
             td_translation.addEventListener('click', function () {
-       
+
                 var input_element = document.createElement("INPUT");
                 input_element.setAttribute("type", "text");
                 input_element.className = "bg-yellow";
@@ -265,7 +330,7 @@
                     td_lastAsked, td_action);
                 input_element.focus();
                 input_element.addEventListener('keyup', function (event) {
-        
+
                     if (event.key === "Enter" || event.key === "Tab") {
                         td_translation.innerHTML = input_element.value;
                         td_translation.className = "teal font-weight-bold";
@@ -280,7 +345,7 @@
                         log.warn(input_element.value);
                         changedElement(element);
                     } else if (event.key === "Escape") {
-                     
+
                         cleanRow(tr);
                         fillRow(tr, td_no, td_word, td_translation,
                             td_error,
@@ -313,7 +378,7 @@
             vocTest.fileContent._entries.forEach(function (element) {
                 createRow(element, word_cnt++);
             });
-           
+
         });
 
 

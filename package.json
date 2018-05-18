@@ -30,6 +30,7 @@
   },
   "devDependencies": {
     "electron-packager": "^11.0.1",
-    "electron-rebuild": "^1.7.3"
+    "electron-rebuild": "^1.7.3",
+    "tablefilter": "^0.6.37"
   }
 }
