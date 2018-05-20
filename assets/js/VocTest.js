@@ -97,7 +97,6 @@ class VocTest {
         });
         this.size = 0;
 
-        this.phaseRelevant = [];
         this.phaseIndices = [];
         this.phaseRelevant = 0;
         this.phaseStats = [];
@@ -167,6 +166,7 @@ class VocTest {
     initPhase() {
         // empty current entry https://stackoverflow.com/questions/1232040/how-do-i-empty-an-array-in-javascript
         this.phaseIndices.length = 0;
+        this.phaseRelevant = 0;
         // determine which entries are ready to be asked
         //  log.debug("[VocTest::INITPHASE] P # PHASES ");
         for (var p = 0; p <= 5; p++) {
@@ -209,7 +209,7 @@ class VocTest {
             this.phaseStats[entry.phase] = this.phaseStats[entry.phase] + 1;
             log.debug("[VocTest::INITPHASE][VD] P " + this.phaseStats[entry.phase]);
         }
-        log.debug("[VocTest::INITPHASE] P # PHASES " + this.phaseStats[0]);
+        log.info("[VocTest] PhaseInit Done # File="+this.shortName + " Index Length=" + this.phaseIndices.length + " Relevant Size=" + this.phaseRelevant);
     }
     save() {
         var myself = this;
