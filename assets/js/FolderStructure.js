@@ -37,7 +37,7 @@ class FolderStructure {
                     vocTest.load().then(function (resolve, reject) {
                         log.debug("  [FOST LOAD] **** NAME=" + resolve.fileName);
                       
-                        vocTest.initPhase();
+                       // vocTest.initPhase();
                         log.debug("  [FOST LOAD] PHASE 0=" + resolve.phaseStats);
                         var fe = new FileEntry({
                             shortName: resolve.shortName,
