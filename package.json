@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "description": "Vocabulary Trainer",
   "main": "main.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/andreasgruener/vocabulary-electron"
+  },
   "scripts": {
     "start": "export ELECTRON_ENABLE_LOGGING=true; electron .",
     "package-mac": "electron-packager . --overwrite --platform=darwin --arch=x64 --icon=assets/icons/mac/icon.icns --prune=true --out=release-builds",
@@ -13,24 +17,26 @@
   "license": "MIT",
   "dependencies": {
     "animate.css": "^3.6.1",
-    "bootstrap": "^4.0.0",
-    "csv-parse": "^2.0.4",
+    "bootstrap": "^4.1.1",
+    "csv-parse": "^2.5.0",
     "dateformat": "^3.0.3",
-    "electron": "^1.8.2",
-    "electron-log": "^2.2.14",
+    "electron": "^1.8.7",
+    "electron-log": "^2.2.16",
     "fontawesome": "^4.7.2",
+    "jquery": "^1.12.4",
     "jshint": "^2.9.5",
-    "mqtt": "^2.15.3",
-    "nodemailer": "^4.6.0",
+    "mqtt": "^2.18.2",
+    "nodemailer": "^4.6.7",
+    "popper.js": "^1.14.3",
     "say": "^0.14.0",
     "spellchecker": "^3.4.4",
-    "sweetalert2": "^7.12.15",
+    "sweetalert2": "^7.24.4",
+    "tablefilter": "^0.6.42",
     "tags-input": "^1.1.1",
     "username": "^3.0.0"
   },
   "devDependencies": {
-    "electron-packager": "^11.0.1",
-    "electron-rebuild": "^1.7.3",
-    "tablefilter": "^0.6.37"
+    "electron-packager": "^11.2.0",
+    "electron-rebuild": "^1.7.3"
   }
 }
