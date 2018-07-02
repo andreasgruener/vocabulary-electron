@@ -120,3 +120,18 @@
 .stroke-silver { stroke: #DDDDDD; }
 .stroke-black { stroke: #111111; }
 
+
+.badge-danger-alt {
+	color: #000000;
+	background: #EE7B26;
+}
+
+.badge-warning-alt {
+	color: #ffffff;
+	background:#B7B81C;
+}
+
+.badge-success-alt {
+	color: #ffffff;
+	background: #70B030;
+}

@@ -80,7 +80,7 @@
                                     </div>
                                     <div class="col-6">
                                         <input id="vocabulary-translation" size="30" class="form-control" placeholder="..type it here .." autofocus>
-                                        <small id="emailHelp" class="form-text text-muted">Provide the translation use colon for multiple Translations see info in "["  "]".</small>
+                                        <small id="emailHelp" class="form-text text-muted">Provide the translation use colon for multiple Translations see info in "[" "]".</small>
                                     </div>
                                     <div class="col-3">
                                         <button type="submit" class="btn btn-primary">Submit</button>
@@ -125,13 +125,13 @@
                     <span id="phase-0-label" data-toggle="tooltip" title="Phase 0" class="badge badge-danger">0</span>
 
 
-                    <span id="phase-1-label" data-toggle="tooltip" title="Phase 1" class="badge badge-danger">0</span>
+                    <span id="phase-1-label" data-toggle="tooltip" title="Phase 1" class="badge badge-danger-alt">0</span>
 
                     <span id="phase-2-label" data-toggle="tooltip" title="Phase 2" class="badge badge-warning">0</span>
 
-                    <span id="phase-3-label" data-toggle="tooltip" title="Phase 3" class="badge badge-warning">0</span>
+                    <span id="phase-3-label" data-toggle="tooltip" title="Phase 3" class="badge badge-warning-alt">0</span>
 
-                    <span id="phase-4-label" data-toggle="tooltip" title="Phase 4" class="badge badge-success">0</span>
+                    <span id="phase-4-label" data-toggle="tooltip" title="Phase 4" class="badge badge-success-alt">0</span>
 
                     <span id="phase-5-label" data-toggle="tooltip" title="Phase 5" class="badge badge-success">0</span>
                     &nbsp;
@@ -163,6 +163,7 @@
                                 <option value="50" selected>50 words</option>
                                 <option value="100">100 words</option>
                                 <option value="150">150 words</option>
+                                <option value="2">250 words</option>
                                 <option value="999">All</option>
                             </select>
                             <div class="input-group-append">
@@ -258,15 +259,15 @@
             cardPath.innerHTML = fileEntry.fileName;
             cardBody.appendChild(cardPath);
             if (fileEntry.phases) {
+                var badgeType = [
+                    "badge-danger", "badge-danger-alt",
+                    "badge-warning", "badge-warning-alt",
+                    "badge-success-alt", "badge-success"
+                ]
                 for (var p = 0; p <= 5; p++) {
                     var pspan = document.createElement("span");
-                    if (p < 2) {
-                        pspan.className = "ml-1 badge badge-danger";
-                    } else if (p < 4) {
-                        pspan.className = "ml-1 badge badge-warning";
-                    } else {
-                        pspan.className = "ml-1 badge badge-success";
-                    }
+                    pspan.className = "ml-1 badge " + badgeType[p];
+
                     cardBody.appendChild(pspan);
                     pspan.innerHTML = fileEntry.phases[p];
                     pspan.setAttribute("data-toggle", "tooltip");
@@ -329,7 +330,7 @@
         function displayQuestion(testRun) {
             log.debug('[MW] test:display');
             log.debug(testRun);
-            if (testRun.type == "EN" && testRun.currentEntry.translations.length > 1 ) {
+            if (testRun.type == "EN" && testRun.currentEntry.translations.length > 1) {
                 wordElement.innerHTML = testRun.currentEntry.ask + " [" + testRun.currentEntry.translations.length +
                     "]";
             } else {
@@ -422,9 +423,12 @@
                     }
                     correctTranslationsText += testRun.correctTranslations[ict];
                 }
-                spanElement.innerHTML = "<div class='row'><div class='col col-2'>Question:<br/>Correct is:<br>You typed:</div><div class='col-10'>" + (testRun.type == "DE" ? testRun.currentEntry.translation : testRun.currentEntry
-                    .word) + "</br>>" + correctTranslationsText + "<<br/>>"+testRun.answer+"<</div></div>";
-                
+                spanElement.innerHTML =
+                    "<div class='row'><div class='col col-2'>Question:<br/>Correct is:<br>You typed:</div><div class='col-10'>" +
+                    (testRun.type == "DE" ? testRun.currentEntry.translation : testRun.currentEntry
+                        .word) + "</br>>" + correctTranslationsText + "<<br/>>" + testRun.answer +
+                    "<</div></div>";
+
                 spanElement.className = "alert alert-danger"; //role="alert"
                 if (testRun.type == "DE" && speechActiveCheckBox.checked) {
                     say.speak(testRun.correctTranslations[0], 'Samantha'); // there is always only one
