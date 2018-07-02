@@ -422,8 +422,9 @@
                     }
                     correctTranslationsText += testRun.correctTranslations[ict];
                 }
-                spanElement.innerHTML = (testRun.type == "DE" ? testRun.currentEntry.translation : testRun.currentEntry
-                    .word) + " --> correct answer is: " + correctTranslationsText;
+                spanElement.innerHTML = "<div class='row'><div class='col col-2'>Question:<br/>Correct is:<br>You typed:</div><div class='col-10'>" + (testRun.type == "DE" ? testRun.currentEntry.translation : testRun.currentEntry
+                    .word) + "</br>>" + correctTranslationsText + "<<br/>>"+testRun.answer+"<</div></div>";
+                
                 spanElement.className = "alert alert-danger"; //role="alert"
                 if (testRun.type == "DE" && speechActiveCheckBox.checked) {
                     say.speak(testRun.correctTranslations[0], 'Samantha'); // there is always only one

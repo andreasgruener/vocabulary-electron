@@ -104,6 +104,7 @@ class VocTest {
         this.currenEntry = {};
         this.currentCount = 0;
         this.currentIndex = 0;
+        this.answer = "";
         this.answerIsCorrect = false;
         this.error = 0;
         this.correct = 0;
@@ -151,7 +152,7 @@ class VocTest {
                 });
 
                 loadInternal(myself.fileContent).then(function (resultEntries) {
-                    //   log.debug("[VocTest] Entries %s", resultEntries.length);
+                    log.debug("[VocTest]   *** LOAD DONE with Entries %s", resultEntries.length);
                     myself.fileContent.entries = resultEntries;
                     myself.initPhase();
                     myself.printStatus();
@@ -161,7 +162,6 @@ class VocTest {
                     log.error("[VocTest] Load File failed " + error);
                 });
             });
-
     }
     initPhase() {
         // empty current entry https://stackoverflow.com/questions/1232040/how-do-i-empty-an-array-in-javascript
@@ -400,7 +400,7 @@ class VocTest {
         } else {
             check.correct_translations = [this.currentEntry.word];
         }
-
+        this.answer = check.translation_entered;
         log.debug("[VT] To check %s / %s --> correct: %s ( %s/%s )", check.word_displayed, check.translation_entered, check.correct_translation, this.currentEntry.word, this.currentEntry.translation);
         log.debug(check.correct_translations);
         var enteredAsArray = check.translation_entered.split(":").sort();
