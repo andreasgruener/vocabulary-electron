@@ -103,17 +103,35 @@ function getInfoMailHTML(testData) {
 	}
 	richtigeFragenTextHTML += "</table>";
 
-	var phasesHTML = "<h1>Lernphasen (0-5)</h1>" +
-		"<table><tr>";
+	var total = testData.phaseStats[0] +
+		testData.phaseStats[1] +
+		testData.phaseStats[2] +
+		testData.phaseStats[3] +
+		testData.phaseStats[4] +
+		testData.phaseStats[5];
+
+	var max_steps = total * 5;
+	var steps =testData.phaseStats[0] *5 +
+	testData.phaseStats[1] * 4+
+	testData.phaseStats[2] * 3+
+	testData.phaseStats[3] * 2+
+	testData.phaseStats[4] * 1;
+	//testData.phaseStats[5];
+	
+	var progressRatio = Math.floor(( max_steps - steps) / max_steps * 100); 
+	log.info("T=" + total + "  M="+max_steps+ " S="+steps+" P="+progressRatio);
+
+		var phasesHTML = "<h1>Lernphasen (0-5)</h1>" +
+			"<table><tr>";
 	var bgc = ["red", "orange", "yellow", "grellow", "yelleen", "green", "grey"];
 	for (var p = 0; p < 6; p++) {
 		phasesHTML += "<th>Phase " + p + "</th>";
 	}
-	phasesHTML += "</tr><tr>";
+	phasesHTML += "<th>Progress</th></tr><tr>";
 	for (var p = 0; p < 6; p++) {
-		phasesHTML += "<td class=\""+bgc[p]+"\">" + testData.phaseStats[p] + "</td>";
+		phasesHTML += "<td class=\"" + bgc[p] + "\">" + testData.phaseStats[p] + "</td>";
 	}
-	phasesHTML += "</tr>" +
+	phasesHTML += "<td class=\"sum\">" + progressRatio + "%</td>"+
 		"</tr></table>";
 
 	log.info(phasesHTML);
@@ -185,6 +203,12 @@ body {
 	background: #28a745;
 }
 
+
+.sum {
+	text-align: center;
+	color: #ffffff;
+	background: #3399FF;
+}
 
 a {
 	color: #c75f3e;
