@@ -1,8 +1,8 @@
 module.exports = {
-    sendMail: function (data) {
-      return sendMailInternal(data);
-    }
-  };
+	sendMail: function (data) {
+		return sendMailInternal(data);
+	}
+};
 
 // code
 
@@ -16,110 +16,125 @@ log.debug("***********************");
 function sendMailInternal(testRunData) {
 
 	log.info("--- MAIL --- Connected");
-	log.warn("******** SETTINGS " + Settings.MAIL_PASSWORT );
-    let transporter = nodemailer.createTransport({
-        host: Settings.MAIL_HOST,
-        port: Settings.MAIL_PORT,
-        secure: Settings.MAIL_SECURE, // true for 465, false for other ports
-        auth: {
-            user: Settings.MAIL_USER,
-            pass: Settings.MAIL_PASS
-        }
-    });
-    log.debug("--- MAIL --- Connected");
+	//log.warn("******** SETTINGS " + Settings.MAIL_PASSWORT);
+	let transporter = nodemailer.createTransport({
+		host: Settings.MAIL_HOST,
+		port: Settings.MAIL_PORT,
+		secure: Settings.MAIL_SECURE, // true for 465, false for other ports
+		auth: {
+			user: Settings.MAIL_USER,
+			pass: Settings.MAIL_PASS
+		}
+	});
+	log.debug("--- MAIL --- Connected");
 	var grade = "";
-	if ( testRunData.grade < 3 ) {
+	if (testRunData.grade < 3) {
 		grade = "😀";
-	} else if ( testRunData.grade < 4 ) {
+	} else if (testRunData.grade < 4) {
 		grade = "🤨";
 	} else {
 		grade = "🤮";
 	}
 	grade = grade + " Grade: " + testRunData.grade + " ";
-    // setup email data with unicode symbols
-    let mailOptions = {
-        from: Settings.MAIL_USER, // sender address
-        to: Settings.MAIL_TO, // list of receivers
-        subject: grade + ' '+testRunData.user, // Subject line
-        text: getInfoMail(testRunData), // plain text body
-        html: getInfoMailHTML(testRunData) // html body
-    };
+	// setup email data with unicode symbols
+	let mailOptions = {
+		from: Settings.MAIL_USER, // sender address
+		to: Settings.MAIL_TO, // list of receivers
+		subject: grade + ' ' + testRunData.user, // Subject line
+		text: getInfoMail(testRunData), // plain text body
+		html: getInfoMailHTML(testRunData) // html body
+	};
 
 
-    // send mail with defined transport object
-    transporter.sendMail(mailOptions, (error, info) => {
-        if (error) {
-            return log.error(error);
-        }
-        log.info('Message sent: %s', info.messageId);
-        // Preview only available when sending through an Ethereal account
-        log.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
+	// send mail with defined transport object
+	transporter.sendMail(mailOptions, (error, info) => {
+		if (error) {
+			return log.error(error);
+		}
+		log.info('Message sent: %s', info.messageId);
+		// Preview only available when sending through an Ethereal account
+		log.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
 
-        // Message sent: <b658f8ca-6296-ccf4-8306-87d57a0b4321@example.com>
-        // Preview URL: https://ethereal.email/message/WaQKMgKddxQDoou...
-    });
+		// Message sent: <b658f8ca-6296-ccf4-8306-87d57a0b4321@example.com>
+		// Preview URL: https://ethereal.email/message/WaQKMgKddxQDoou...
+	});
 }
 
 
 // info mail
 
 function getInfoMail(testData) {
-    var falscheFragenText = "unknown";
-    var richtigeFragenText = "unknown";
-    var info =
-        "Vokabeltrainer\n" +
-        "\n" +
-        "Gestartet am:\t" + testData.started + "\n" +
-        "Beginn:\t\t" + testData.started + "\n" +
-        "Ende:\t\t" + testData.finished + "\n" +
-        "Note:\t\t" + testData.grade + "\n" +
-        "Dauer:\t\t" + testData.duration + " Sekunden\n" +
-        "Benutzer:\t\t" + testData.user + "\n" +
-        "Vokabeln:\t" + testData.targetCount + "\n" +
-        "Davon Falsch:\t\t" + testData.error + "\n" +
-        "Abfrageart:\t\t" + testData.type + "\n" +
-        "Vokabeldatei\t\t" + testData.fileName + "\n" +
-        "\n";
+	var falscheFragenText = "unknown";
+	var richtigeFragenText = "unknown";
+	var info =
+		"Vokabeltrainer\n" +
+		"\n" +
+		"Gestartet am:\t" + testData.started + "\n" +
+		"Beginn:\t\t" + testData.started + "\n" +
+		"Ende:\t\t" + testData.finished + "\n" +
+		"Note:\t\t" + testData.grade + "\n" +
+		"Dauer:\t\t" + testData.duration + " Sekunden\n" +
+		"Benutzer:\t\t" + testData.user + "\n" +
+		"Vokabeln:\t" + testData.targetCount + "\n" +
+		"Davon Falsch:\t\t" + testData.error + "\n" +
+		"Abfrageart:\t\t" + testData.type + "\n" +
+		"Vokabeldatei\t\t" + testData.fileName + "\n" +
+		"\n";
 
-    info = info + "\nFalsch beantwortet:" + falscheFragenText + "\n\n\nRichtig beantwortet: " + richtigeFragenText
-    return info;
+	info = info + "\nFalsch beantwortet:" + falscheFragenText + "\n\n\nRichtig beantwortet: " + richtigeFragenText
+	return info;
 }
 
 function getInfoMailHTML(testData) {
 
 	var falscheFragenTextHTML = "<table><tr><th>Phase</th><th>Frage</th><th>Antwort</th><th>Richtige Antwort</th></tr>";
-	for ( var i in testData.wrongAnswers ) {
+	for (var i in testData.wrongAnswers) {
 		var entry = testData.wrongAnswers[i];
-		falscheFragenTextHTML += "<tr><td>" +entry.phase + "</td><td>"+entry.word_displayed + "</td><td>" + entry.translation_entered +  "</td><td>" + entry.correct_translations + "</td></tr>";
+		falscheFragenTextHTML += "<tr><td>" + entry.phase + "</td><td>" + entry.word_displayed + "</td><td>" + entry.translation_entered + "</td><td>" + entry.correct_translations + "</td></tr>";
 
 	}
 	falscheFragenTextHTML += "</table>";
-	
+
 	var richtigeFragenTextHTML = "<table><tr><th>Phase</th><th>Frage</th><th>Antwort</th><th>Richtige Antwort</th></tr>";
-	for ( var i in testData.correctAnswers ) {
+	for (var i in testData.correctAnswers) {
 		var entry = testData.correctAnswers[i];
-		richtigeFragenTextHTML += "<tr><td>" +entry.phase + "</td><td>"+entry.word_displayed + "</td><td>" + entry.translation_entered +  "</td><td>" + entry.correct_translations + "</td></tr>";
+		richtigeFragenTextHTML += "<tr><td>" + entry.phase + "</td><td>" + entry.word_displayed + "</td><td>" + entry.translation_entered + "</td><td>" + entry.correct_translations + "</td></tr>";
 
 	}
 	richtigeFragenTextHTML += "</table>";
-	;
+
+	var phasesHTML = "<h1>Lernphasen (0-5)</h1>" +
+		"<table><tr>";
+	var bgc = ["red", "orange", "yellow", "grellow", "yelleen", "green", "grey"];
+	for (var p = 0; p < 6; p++) {
+		phasesHTML += "<th>Phase " + p + "</th>";
+	}
+	phasesHTML += "</tr><tr>";
+	for (var p = 0; p < 6; p++) {
+		phasesHTML += "<td class=\""+bgc[p]+"\">" + testData.phaseStats[p] + "</td>";
+	}
+	phasesHTML += "</tr>" +
+		"</tr></table>";
+
+	log.info(phasesHTML);
+
 	// Saturday, June 9th, 2007, 5:46:21 PM
-    var infoHTML =
-        "<h1>Vokabeltrainer :: " + testData.user + " :: " + testData.type + "</h1>" +
-        "<table>" +
-        "<tr><td>Gestartet am:</td><td><b>" + dateFormat(testData.started, "HH:MM:ss") + "</b></td></tr>" +
+	var infoHTML =
+		"<h1>Vokabeltrainer :: " + testData.user + " :: " + testData.type + "</h1>" +
+		"<table>" +
+		"<tr><td>Gestartet am:</td><td><b>" + dateFormat(testData.started, "HH:MM:ss") + "</b></td></tr>" +
 		"<tr><td>Note:</td><td style=\"color: #FF0000 !important;\"><b>" + testData.grade + "</b></td></tr>" +
 		"<tr><td>Beginn:</td><td><b>" + dateFormat(testData.started, "HH:MM:ss") + "</b></td></tr>" +
-        "<tr><td>Ende:</td><td><b>" + dateFormat(testData.finished, "HH:MM:ss") + "</b></td></tr>" +
-        "<tr><td>Dauer:</td><td><b>" + testData.duration + " Sekunde/n</b></td></tr>" +
-        "<tr><td>Benutzer:</td><td><b>" + testData.user + "</b></td></tr>" +
-        "<tr><td>Vokabeln:</td><td><b>" + testData.targetCount + "</b></td></tr>" +
-        "<tr><td>Davon Falsch:</td><td><b>" + testData.error + "</b></td></tr>" +
-        "<tr><td>Abfrageart:</td><td><b>" + testData.type + "</b></td></tr>" +
-        "<tr><td>Vokabeldatei</td><td><b>" + testData.fileName + "</b></td></tr>" +
-        "</table>";
-    infoHTML = css + infoHTML + "<h2>Falsch beantwortet:</h2>" + falscheFragenTextHTML + "<h2>Richtig beantwortet:</h2> " + richtigeFragenTextHTML
-    return infoHTML;
+		"<tr><td>Ende:</td><td><b>" + dateFormat(testData.finished, "HH:MM:ss") + "</b></td></tr>" +
+		"<tr><td>Dauer:</td><td><b>" + testData.duration + " Sekunde/n</b></td></tr>" +
+		"<tr><td>Benutzer:</td><td><b>" + testData.user + "</b></td></tr>" +
+		"<tr><td>Vokabeln:</td><td><b>" + testData.targetCount + "</b></td></tr>" +
+		"<tr><td>Davon Falsch:</td><td><b>" + testData.error + "</b></td></tr>" +
+		"<tr><td>Abfrageart:</td><td><b>" + testData.type + "</b></td></tr>" +
+		"<tr><td>Vokabeldatei</td><td><b>" + testData.fileName + "</b></td></tr>" +
+		"</table>";
+	infoHTML = css + phasesHTML + infoHTML + "<h2>Falsch beantwortet:</h2>" + falscheFragenTextHTML + "<h2>Richtig beantwortet:</h2> " + richtigeFragenTextHTML
+	return infoHTML;
 }
 
 // mail template
@@ -131,6 +146,45 @@ body {
 	color: #4f6b72;
 	background: #E6EAE9;
 }
+
+.red {
+	text-align: center;
+	color: #ffffff;
+	background: #dc3545;
+}
+
+.orange {
+	text-align: center;
+	color: #000000;
+	background: #EE7B26;
+}
+
+.yellow {
+	text-align: center;
+	color: #000000;
+	background: #ffc107;
+}
+
+.yelleen {
+	text-align: center;
+	color: #ffffff;
+	background: #70B030;
+	
+}
+
+.grellow {
+	text-align: center;
+	color: #ffffff;
+	background: #B7B81C;
+}
+
+
+.green {
+	text-align: center;
+	color: #ffffff;
+	background: #28a745;
+}
+
 
 a {
 	color: #c75f3e;
