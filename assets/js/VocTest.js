@@ -101,6 +101,10 @@ class VocTest {
         this.phaseRelevant = 0;
         this.phaseStats = [];
 
+        this.phasesMaxSteps = 0;
+        this.hasesStepsDone = 0;
+        this.phasesProgressRatio = 0;
+
         this.currenEntry = {};
         this.currentCount = 0;
         this.currentIndex = 0;
@@ -164,6 +168,8 @@ class VocTest {
             });
     }
     initPhase() {
+        log.info("[VocTest] PhaseInit START # File="+this.shortName + " Index Length=" + this.phaseIndices.length + " Relevant Size=" + this.phaseRelevant);
+ 
         // empty current entry https://stackoverflow.com/questions/1232040/how-do-i-empty-an-array-in-javascript
         this.phaseIndices.length = 0;
         this.phaseRelevant = 0;
@@ -172,14 +178,18 @@ class VocTest {
         for (var p = 0; p <= 5; p++) {
             this.phaseStats[p] = 0; // init
         }
-        const daysPhase = [0, 2, 4, 8, 16, 24];
-
         const daysPhase0 = 0;
         const daysPhase1 = 2;
         const daysPhase2 = 4;
         const daysPhase3 = 8;
         const daysPhase4 = 16;
-        const daysPhase5 = 32;
+        const daysPhase5 = 180;
+
+        const daysPhase = [daysPhase0, daysPhase1, daysPhase2, daysPhase3, daysPhase4, daysPhase5];
+
+        this.phasesMaxSteps = 0;
+        this.phasesStepsDone = 0;
+        this.phasesProgressRatio = 0;
 
         var fullDataSet = this.fileContent.entries;
         for (var i = 0; i < fullDataSet.length; i++) {
@@ -193,21 +203,30 @@ class VocTest {
             //     entry.phase = 0; // new vocabulary
             // }
 
+            if ( entry.phase > 5 ) {
+                
+                log.info("[VocTest] Limiting Maximum Phase to 5 was before = " + entry.phase);
+                entry.phase = 5;
+            }
+
+
             var lastAskedDelta = daysDiff(lastAsked, today);
             // log.debug("[VocTest::INITPHASE]P # Phase=%s, Today=%s, LastAsked=%s, Delta=%s", entry.phase, today, lastAsked, lastAskedDelta);
             if (lastAskedDelta >= daysPhase[entry.phase]) {
                 this.phaseIndices.push(i);
                 this.phaseRelevant++;
-                log.debug("[VocTest::INITPHASE]P # 0 # Adding Phase=%s Days=%s (Delay=%s)", entry.phase, lastAskedDelta, daysPhase[entry.phase]);
+                log.info("[VocTest::INITPHASE]P # 0 # %s -- Adding Phase=%s LastAsked=%s > Delay=%s", entry.word, entry.phase, lastAskedDelta, daysPhase[entry.phase]);
             } else if (!entry.phase) {
                 this.phaseIndices.push(i);
                 this.phaseRelevant++;
-                log.debug("[VocTest::INITPHASE]P # 0 # NO Phase Info Phase=%s Days=%s (Delay=%s)", entry.phase, lastAskedDelta, daysPhase[entry.phase]);
+                log.info("[VocTest::INITPHASE]P # 0 # %s --NO Phase Info Phase=%s LastAsked=%s > Delay=%s", entry.word, entry.phase, lastAskedDelta, daysPhase[entry.phase]);
             } else {
-                log.debug("[VocTest::INITPHASE]P # 0 # Skipping Phase=%s Days=%s (Delay=%s)", entry.phase, lastAskedDelta, daysPhase[entry.phase]);
+                log.info("[VocTest::INITPHASE]P # 0 # %s --Skipping Phase=%s LastAsked=%s > Delay=%s", entry.word, entry.phase, lastAskedDelta, daysPhase[entry.phase]);
             }
+
+            
             this.phaseStats[entry.phase] = this.phaseStats[entry.phase] + 1;
-            log.debug("[VocTest::INITPHASE][VD] P " + this.phaseStats[entry.phase]);
+            log.info("[VocTest::INITPHASE][VD] P " + this.phaseStats[entry.phase]);
         }
         log.info("[VocTest] PhaseInit Done # File="+this.shortName + " Index Length=" + this.phaseIndices.length + " Relevant Size=" + this.phaseRelevant);
     }
@@ -249,6 +268,7 @@ class VocTest {
             log.debug("[VocTest] P " + this.fileContent.entries[this.phaseIndices[i]].phase);
             log.debug(this.fileContent.entries[this.phaseIndices[i]]);
         }
+        this.askedMultitranslations = [];
         this.targetCount = c;
         this.type = t;
         this.started = new Date();
@@ -332,7 +352,7 @@ class VocTest {
         log.debug(entry);
         log.debug("<<<<< [VocTest] ASKING .....");
         var multiTransCount = entry.translations.length;
-        var exitingMultitrans = this.askedMultitranslations[this.currentIndex];
+        var existingMultitrans = this.askedMultitranslations[this.currentIndex];
         //   log.debug(entry.translations);
         log.debug("Size %s and type %s", multiTransCount, this.type);
         if (this.type == "EN") {
@@ -344,9 +364,11 @@ class VocTest {
 
             if (multiTransCount > 1) { // multiple translation to ask
 
-                var askedMultiTrans = exitingMultitrans;
+                var askedMultiTrans = existingMultitrans;
                 var randomMulti = Math.floor(Math.random() * Math.floor(multiTransCount - 1));
-
+                log.debug("[VocTest] MultiTrans - list -- START");
+                log.debug(askedMultiTrans);
+                log.debug("[VocTest] MultiTrans - list -- END");
                 // check if got this before
                 if (askedMultiTrans) { // second++ time this entry
                     randomMulti = Math.floor(Math.random() * Math.floor(askedMultiTrans.length - 1));
@@ -356,8 +378,8 @@ class VocTest {
                     if (askedMultiTrans.length < 1) {
                         this.remainingIndices.splice(random, 1);
                     }
-
-                    log.debug(randomMulti);
+                    log.debug("[VocTest] MultiTrans - Entry to ask " + entry.ask);
+                    
                 } else {
                     askedMultiTrans = [];
                     for (var m = 0; m < multiTransCount; m++) {
@@ -474,6 +496,18 @@ class VocTest {
             tgrade = 6;
         }
         this.grade = tgrade;
+
+        this.phasesMaxSteps = this.currentCount * 5;
+        this.phasesStepsDone =this.phaseStats[0] *5 +
+        this.phaseStats[1] * 4+
+        this.phaseStats[2] * 3+
+        this.phaseStats[3] * 2+
+        this.phaseStats[4] * 1;
+        //testData.phaseStats[5];
+        
+        // do I need this??
+        // this.phasesProgressRatio = Math.floor(( max_steps - steps) / max_steps * 100); 
+        // log.info("T=" + total + "  M="+max_steps+ " S="+steps+" P="+progressRatio);
 
         return this.grade;
     }
