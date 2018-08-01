@@ -19,9 +19,14 @@ function publishInternal(testRunData) {
 
     var topic = "vocabulary/" +
         testRunData.user + "/" +
-        testRunData.language +  "/" +
         testRunData.type +  "/" +
-        testRunData.fileName +  "/" +
+        testRunData.phaseStats[0] + "/" +
+		testRunData.phaseStats[1] + "/" +
+		testRunData.phaseStats[2] + "/" +
+		testRunData.phaseStats[3] + "/" +
+		testRunData.phaseStats[4] + "/" +
+        testRunData.phaseStats[5];
+        testRunData.shortName +  "/" +
         testRunData.targetCount +  "/" +
         testRunData.error +  "/" +
         testRunData.duration +  "/" +
