@@ -132,7 +132,7 @@ app.on('ready', function () {
 
 function nextVocabulary() {
     var entry = currentVocTest.next();
-    log.info("[MAIN] Get next vocabulary ... ");
+    log.debug("[MAIN] Get next vocabulary ... ");
     if (currentVocTest.rerun) {
         log.info("[MAIN] RERUN You got wrong answers");
         entry = currentVocTest.nextRerun();
