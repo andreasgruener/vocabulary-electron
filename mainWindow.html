@@ -142,7 +142,7 @@
 
                 <div class="col-5">
                     <div class="form-check">
-                        <input type="checkbox" class="form-check-input" id="speechActive">
+                        <input type="checkbox" class="form-check-input" checked id="speechActive">
                         <label class="form-check-label" for="exampleCheck1">Speech</label>
                         <i>(Version: 0207-19)</i>
                     </div>
@@ -328,6 +328,7 @@
         }
 
         function displayQuestion(testRun) {
+            log.debug('\n\n[MW] ######################### ');
             log.debug('[MW] test:display');
             log.debug(testRun);
             if (testRun.type == "EN" && testRun.currentEntry.translations.length > 1) {
@@ -351,6 +352,7 @@
             log.debug('[MW] Display StatS : Remaining %s = Total %s - Correct %s - Error %s', remaining,
                 testRun.total, testRun.correct, testRun.error);
             translationElement.focus();
+            log.debug('[MW] ######################### \n\n');
         }
 
         //  clear filestats entries
@@ -412,10 +414,12 @@
                 spanElement.className = "alert alert-success"; //role="alert"
                 //  spanElement.className = "alert alert-success animated bounce";
                 //     testCorrectElement.className += " animated wobble";
-                log.debug('[MW] test:result OK');
-
+                log.info('[MW] test:result OK ' + testRun.answer);
+                if (testRun.type == "DE" && speechActiveCheckBox.checked) {
+                    say.speak(testRun.answer, 'Samantha'); // there is always only one
+                }
             } else {
-                log.debug('[MW] ***** CORRECT IS %s', testRun.correctTranslations[0]);
+                log.info('[MW] ***** CORRECT IS %s', testRun.correctTranslations[0]);
                 var correctTranslationsText = "";
                 for (var ict = 0; ict < testRun.correctTranslations.length; ict++) {
                     if (correctTranslationsText.length > 0) {
@@ -433,7 +437,7 @@
                 if (testRun.type == "DE" && speechActiveCheckBox.checked) {
                     say.speak(testRun.correctTranslations[0], 'Samantha'); // there is always only one
                 }
-                log.debug('[MW] test:result Wrong : %s', correctTranslationsText);
+                log.info('[MW] test:result Wrong : %s', correctTranslationsText);
             }
             errorElement.appendChild(spanElement);
         });
